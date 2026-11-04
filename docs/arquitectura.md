@@ -42,11 +42,9 @@ Solo los correos pre-registrados pueden crear cuenta.
 - Una fecha en el futuro (ej. 05/11/2026 en una hoja de mayo) se interpreta con día y mes invertidos.
 - El inventario de Sin Par viene sin fecha (“######”): al subirlo se indica la fecha de corte.
 
-**Preguntas pendientes (no se inventaron, quedan por confirmar):**
-1. ¿La fórmula del costo de venta (inv. inicial + compras + traslados − inv. final, sobre ventas sin
-   impuestos) es la que usan en los informes actuales?
-2. ¿Los descuentos (socios, comerciales, empleados) deben restar de las ventas, como se hace hoy, o mostrarse aparte?
-3. ¿Las compras de aseo, empaque y utensilios deben sumar al % de costo o quedarse aparte como ahora?
-4. La hoja RENTABILIDAD de 123 Wok trae tarifas de Rocoto, Malanga y Hot Wings, y “ELOTES” aparece con
-   costo de $3.181.386. ¿Es una copia de otro archivo?
-5. La hoja RENTABILIDAD de Casa de Nadie está vacía.
+**Decisiones confirmadas por Mariluz (4 nov 2026):**
+1. Costo de venta = inventario inicial + compras + traslados − inventario final, sobre ventas sin impuestos. ✔
+2. El informe de rentabilidad (Resumen) usa **solo los centros de costo Cocina y Bar**, tanto en ventas como en costos.
+   Descuentos y otras ventas se siguen viendo en la sección Ventas y como nota informativa en el Resumen.
+3. Aseo, empaque y utensilios quedan aparte como “Otros costos” y no suman al % de costo. ✔
+4. Las hojas de RENTABILIDAD de 123 Wok y Casa de Nadie se volverán a subir con la información correcta.

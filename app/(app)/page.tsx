@@ -85,7 +85,7 @@ export default function Resumen() {
     <div>
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-xl font-semibold">Resumen de rentabilidad</h1>
-        <p className="text-xs text-stone-500">Costo de venta = Inv. inicial + Compras + Traslados − Inv. final · Ventas sin impuestos</p>
+        <p className="text-xs text-stone-500">Costo de venta = Inv. inicial + Compras + Traslados − Inv. final · Solo centros de costo Cocina y Bar · Ventas sin impuestos</p>
       </div>
       <BarraFiltros />
       {error && <p className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
@@ -96,7 +96,7 @@ export default function Resumen() {
       ) : (
         <>
           <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-5">
-            <Kpi titulo="Ventas (sin impuestos)" valor={fmtPesos(total.ventas)} nota={total.descuentos ? `Incluye descuentos por ${fmtPesos(total.descuentos)}` : undefined} />
+            <Kpi titulo="Ventas Cocina + Bar (sin imp.)" valor={fmtPesos(total.ventas)} nota={total.descuentos || total.ventasOtras ? `No incluye descuentos (${fmtPesos(total.descuentos)}) ni otras ventas (${fmtPesos(total.ventasOtras)})` : undefined} />
             <Kpi titulo="Costo de venta (Cocina + Bar)" valor={fmtPesos(costoAB(total))} />
             <Kpi titulo="% Costo total" valor={fmtPct(div(costoAB(total), total.ventas))} />
             <Kpi titulo="% Costo Cocina" valor={fmtPct(div(total.costoCocina, total.ventasCocina))} nota={`Ventas cocina ${fmtPesos(total.ventasCocina)}`} />
@@ -104,7 +104,7 @@ export default function Resumen() {
           </div>
 
           <div className="mb-4 grid gap-3 md:grid-cols-2">
-            <GraficoBarras titulo="Ventas por mes" datos={porMes.map(([m, b]) => ({ etiqueta: fmtMes(m), valor: b.ventas }))} />
+            <GraficoBarras titulo="Ventas Cocina + Bar por mes" datos={porMes.map(([m, b]) => ({ etiqueta: fmtMes(m), valor: b.ventas }))} />
             <GraficoLinea titulo="% Costo de venta por mes" datos={porMes.map(([m, b]) => ({ etiqueta: fmtMes(m), valor: div(costoAB(b), b.ventas) }))} />
           </div>
 
@@ -113,7 +113,7 @@ export default function Resumen() {
               <thead>
                 <tr>
                   <th>Mes / Sede</th>
-                  <th className="num">Ventas</th>
+                  <th className="num">Ventas Cocina + Bar</th>
                   <th className="num">Inv. inicial</th>
                   <th className="num">Compras</th>
                   <th className="num">Traslados</th>

@@ -3,6 +3,8 @@
 //   Costo de venta = Inventario inicial + Compras + Traslados recibidos − Inventario final
 //   Inventario inicial de un mes = inventario final del mes anterior.
 //   % costo = Costo de venta / Ventas (base, sin impuestos)
+//   Para el informe de rentabilidad solo cuentan los centros de costo Cocina y Bar
+//   (ventas y costos). Descuentos y otras ventas se muestran aparte, solo como referencia.
 //
 // Los centros de producción (tipo "produccion") no venden: su costo llega a las sedes
 // por medio de los traslados, así que se excluyen de los totales para no contarlo dos veces.
@@ -13,24 +15,26 @@ export type FilaResumen = {
 };
 
 export type Bloque = {
-  ventas: number; ventasCocina: number; ventasBar: number; descuentos: number;
+  ventas: number; // solo Cocina + Bar
+  ventasOtras: number; // otros centros de costo (parqueadero, invitaciones…)
+  ventasCocina: number; ventasBar: number; descuentos: number;
   compras: number; traslados: number; invInicial: number; invFinal: number;
   costoCocina: number; costoBar: number; costoOtros: number;
   sinInvInicial: boolean; sinInvFinal: boolean;
 };
 
 export const bloqueVacio = (): Bloque => ({
-  ventas: 0, ventasCocina: 0, ventasBar: 0, descuentos: 0, compras: 0, traslados: 0,
+  ventas: 0, ventasOtras: 0, ventasCocina: 0, ventasBar: 0, descuentos: 0, compras: 0, traslados: 0,
   invInicial: 0, invFinal: 0, costoCocina: 0, costoBar: 0, costoOtros: 0,
   sinInvInicial: false, sinInvFinal: false,
 });
 
 export function sumarFila(b: Bloque, f: FilaResumen) {
   const v = Number(f.ventas), c = Number(f.compras), t = Number(f.traslados), ii = Number(f.inv_inicial), fi = Number(f.inv_final);
-  b.ventas += v;
-  if (f.grupo === "Cocina") b.ventasCocina += v;
-  if (f.grupo === "Bar") b.ventasBar += v;
-  if (f.grupo === "Descuentos") b.descuentos += v;
+  if (f.grupo === "Cocina") { b.ventasCocina += v; b.ventas += v; }
+  else if (f.grupo === "Bar") { b.ventasBar += v; b.ventas += v; }
+  else if (f.grupo === "Descuentos") b.descuentos += v;
+  else b.ventasOtras += v;
   const costo = ii + c + t - fi;
   if (f.grupo === "Cocina" || f.grupo === "Bar") {
     b.compras += c; b.traslados += t; b.invInicial += ii; b.invFinal += fi;
