@@ -82,18 +82,31 @@ function texto(v: unknown): string | null {
   return t === "" ? null : t;
 }
 
-export function numero(v: unknown): number {
+/**
+ * Convierte texto a número aceptando formato colombiano (1.234.567,89) y estadounidense (1,234,567.89).
+ * `decimalComa`: el archivo usa coma decimal (archivos planos separados por ;), así "1.143" se lee como 1143.
+ */
+export function numero(v: unknown, decimalComa = false): number {
   if (typeof v === "number") return Number.isFinite(v) ? v : 0;
   if (v === null || v === undefined) return 0;
   let s = String(v).trim();
   if (s === "" || s === "-" || s.startsWith("#")) return 0;
   s = s.replace(/\$/g, "").replace(/\s/g, "");
-  // 1.234.567,89  -> 1234567.89 ; 1,234,567.89 -> 1234567.89
-  if (/,\d{1,2}$/.test(s) && s.includes(".")) s = s.replace(/\./g, "").replace(",", ".");
-  else if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, "");
-  else s = s.replace(/,/g, "");
+  const negParentesis = /^\(.*\)$/.test(s);
+  if (negParentesis) s = s.slice(1, -1);
+  const comas = (s.match(/,/g) || []).length;
+  const puntos = (s.match(/\./g) || []).length;
+  if (comas && puntos) {
+    // el último separador es el decimal
+    s = s.lastIndexOf(",") > s.lastIndexOf(".") ? s.replace(/\./g, "").replace(",", ".") : s.replace(/,/g, "");
+  } else if (comas) {
+    s = comas > 1 ? s.replace(/,/g, "") : s.replace(",", ".");
+  } else if (puntos) {
+    if (puntos > 1 || (decimalComa && /^-?\d{1,3}\.\d{3}$/.test(s))) s = s.replace(/\./g, "");
+  }
   const n = Number(s);
-  return Number.isFinite(n) ? n : 0;
+  if (!Number.isFinite(n)) return 0;
+  return negParentesis ? -n : n;
 }
 
 function iso(y: number, m: number, d: number): string | null {
@@ -288,6 +301,8 @@ function buscarEncabezado(filas: unknown[][], tipo: TipoHoja): { fila: number; c
 export type OpcionesImportacion = {
   /** Fecha a usar cuando una fila de inventario no trae fecha válida (ej. "######") */
   fechaRespaldo?: string | null;
+  /** El archivo usa coma decimal (se activa solo para archivos planos separados por ;) */
+  decimalComa?: boolean;
 };
 
 export function procesarHoja(nombreHoja: string, filas: unknown[][], tipo: TipoHoja, op: OpcionesImportacion = {}): ResultadoHoja {
@@ -300,6 +315,7 @@ export function procesarHoja(nombreHoja: string, filas: unknown[][], tipo: TipoH
     throw new Error(`No se encontraron las columnas necesarias en la hoja "${nombreHoja}" (${OBLIGATORIOS[tipo].join(", ")}).`);
   }
   const c = enc.cols;
+  const num = (v: unknown) => numero(v, !!op.decimalComa);
   const get = (r: unknown[], campo: string) => (c[campo] === undefined ? null : r[c[campo]]);
   const omitir = (motivo: string) => {
     res.filasOmitidas++;
@@ -323,8 +339,8 @@ export function procesarHoja(nombreHoja: string, filas: unknown[][], tipo: TipoH
       res.filas.push({
         grupo: texto(get(r, "grupo")), tarifa: texto(get(r, "tarifa")), familia: texto(get(r, "familia")),
         centro_costos: texto(get(r, "centro_costos")), articulo, referencia: texto(get(r, "referencia")),
-        precio: numero(get(r, "precio")), impuesto: numero(get(r, "impuesto")),
-        base: numero(get(r, "base")), coste: numero(get(r, "coste")),
+        precio: num(get(r, "precio")), impuesto: num(get(r, "impuesto")),
+        base: num(get(r, "base")), coste: num(get(r, "coste")),
       } as FilaRentabilidad);
       continue;
     }
@@ -341,9 +357,9 @@ export function procesarHoja(nombreHoja: string, filas: unknown[][], tipo: TipoH
       const fila: FilaVenta = {
         sede, fecha: f, tarifa: texto(get(r, "tarifa")), tipo_documento: texto(get(r, "tipo_documento")),
         familia: texto(get(r, "familia")), centro_costos: texto(get(r, "centro_costos")), articulo: texto(get(r, "articulo")),
-        lineas: 1, unidades: numero(get(r, "unidades")), subtotal: numero(get(r, "subtotal")),
-        descuento: numero(get(r, "descuento")), base: numero(get(r, "base")),
-        impuestos: numero(get(r, "impuestos")), neto: numero(get(r, "neto")),
+        lineas: 1, unidades: num(get(r, "unidades")), subtotal: num(get(r, "subtotal")),
+        descuento: num(get(r, "descuento")), base: num(get(r, "base")),
+        impuestos: num(get(r, "impuestos")), neto: num(get(r, "neto")),
       };
       if (c.subtotal === undefined) fila.subtotal = fila.neto;
       const k = [sede, f, fila.tarifa, fila.tipo_documento, fila.familia, fila.centro_costos, fila.articulo].join("\u0001");
@@ -357,25 +373,25 @@ export function procesarHoja(nombreHoja: string, filas: unknown[][], tipo: TipoH
         sede, fecha: f, serie: texto(get(r, "serie")), tipo_documento: texto(get(r, "tipo_documento")),
         serie_origen: texto(get(r, "serie_origen")), nif: texto(get(r, "nif")), proveedor: texto(get(r, "proveedor")),
         familia: texto(get(r, "familia")), centro_costos: texto(get(r, "centro_costos")), articulo: texto(get(r, "articulo")),
-        subarticulo: texto(get(r, "subarticulo")), unidades: numero(get(r, "unidades")),
-        valor_unitario: numero(get(r, "valor_unitario")), total: numero(get(r, "total")),
+        subarticulo: texto(get(r, "subarticulo")), unidades: num(get(r, "unidades")),
+        valor_unitario: num(get(r, "valor_unitario")), total: num(get(r, "total")),
       } as FilaCompra);
     } else if (tipo === "inventarios") {
       res.filas.push({
         sede, fecha: f, serie: texto(get(r, "serie")), familia: texto(get(r, "familia")), subfamilia: texto(get(r, "subfamilia")),
         centro_costos: texto(get(r, "centro_costos")), proveedor: texto(get(r, "proveedor")), articulo: texto(get(r, "articulo")),
         codigo: texto(get(r, "codigo")), subarticulo: texto(get(r, "subarticulo")),
-        costo_unitario: numero(get(r, "costo_unitario")), stock_fecha: numero(get(r, "stock_fecha")),
-        variacion: numero(get(r, "variacion")), stock_inventario: numero(get(r, "stock_inventario")),
-        total: numero(get(r, "total")),
+        costo_unitario: num(get(r, "costo_unitario")), stock_fecha: num(get(r, "stock_fecha")),
+        variacion: num(get(r, "variacion")), stock_inventario: num(get(r, "stock_inventario")),
+        total: num(get(r, "total")),
       } as FilaInventario);
     } else if (tipo === "traslados") {
       res.filas.push({
         sede, fecha: f, serie: texto(get(r, "serie")), familia: texto(get(r, "familia")),
         centro_costos: texto(get(r, "centro_costos")), articulo: texto(get(r, "articulo")),
         subarticulo: texto(get(r, "subarticulo")), tipo_documento: texto(get(r, "tipo_documento")),
-        motivo: texto(get(r, "motivo")), variacion: numero(get(r, "variacion")),
-        costo_unitario: numero(get(r, "costo_unitario")), total: numero(get(r, "total")),
+        motivo: texto(get(r, "motivo")), variacion: num(get(r, "variacion")),
+        costo_unitario: num(get(r, "costo_unitario")), total: num(get(r, "total")),
       } as FilaTraslado);
     }
   }
@@ -391,16 +407,90 @@ export function procesarHoja(nombreHoja: string, filas: unknown[][], tipo: TipoH
 
 export type HojaDisponible = { nombre: string; tipo: TipoHoja | null };
 
-export function listarHojas(datos: ArrayBuffer): HojaDisponible[] {
-  const wb = XLSX.read(datos, { type: "array", bookSheets: true });
+/** Origen del archivo: Excel (binario) o archivo plano (CSV / TXT ya convertido a texto). */
+export type Fuente = { clase: "excel"; datos: ArrayBuffer } | { clase: "plano"; texto: string; separador: string };
+
+export const esArchivoPlano = (nombre: string) => /\.(csv|txt|tsv|prn)$/i.test(nombre);
+
+/** Convierte los bytes de un archivo plano a texto: UTF-8 si es válido, si no Windows-1252 (Excel en español). */
+export function decodificarTexto(datos: ArrayBuffer): string {
+  let t: string;
+  try {
+    t = new TextDecoder("utf-8", { fatal: true }).decode(datos);
+  } catch {
+    t = new TextDecoder("windows-1252").decode(datos);
+  }
+  return t.replace(/^\uFEFF/, "");
+}
+
+/** Elige el separador más frecuente en las primeras líneas: ; , tabulación o | */
+export function detectarSeparador(texto: string): string {
+  const lineas = texto.split(/\r?\n/).filter((l) => l.trim()).slice(0, 5);
+  const candidatos = [";", "\t", ",", "|"];
+  let mejor = ";", max = -1;
+  for (const c of candidatos) {
+    const n = Math.min(...lineas.map((l) => l.split(c).length - 1));
+    if (n > max) { max = n; mejor = c; }
+  }
+  return mejor;
+}
+
+export function crearFuente(nombreArchivo: string, datos: ArrayBuffer): Fuente {
+  if (esArchivoPlano(nombreArchivo)) {
+    const texto = decodificarTexto(datos);
+    return { clase: "plano", texto, separador: detectarSeparador(texto) };
+  }
+  return { clase: "excel", datos };
+}
+
+const NOMBRE_HOJA_PLANA = "Archivo plano";
+
+export function listarHojas(fuente: Fuente): HojaDisponible[] {
+  if (fuente.clase === "plano") return [{ nombre: NOMBRE_HOJA_PLANA, tipo: null }];
+  const wb = XLSX.read(fuente.datos, { type: "array", bookSheets: true });
   return wb.SheetNames.map((n) => ({ nombre: n, tipo: tipoDeHoja(n) }));
 }
 
-export function leerHoja(datos: ArrayBuffer, nombreHoja: string, op: OpcionesImportacion = {}): ResultadoHoja {
-  const tipo = tipoDeHoja(nombreHoja);
-  if (!tipo) throw new Error(`No se reconoce el tipo de la hoja "${nombreHoja}"`);
-  const wb = XLSX.read(datos, { type: "array", sheets: nombreHoja, cellDates: true, dense: true, cellFormula: false, cellHTML: false, cellText: false });
-  const ws = wb.Sheets[nombreHoja];
-  const filas = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, raw: true, defval: null, blankrows: false });
-  return procesarHoja(nombreHoja, filas, tipo, op);
+/**
+ * Lee una hoja. Si se indica `tipoForzado` (el usuario eligió qué está subiendo),
+ * se usa ese tipo sin importar cómo se llame la hoja.
+ */
+export function leerHoja(fuente: Fuente, nombreHoja: string, op: OpcionesImportacion = {}, tipoForzado?: TipoHoja | null): ResultadoHoja {
+  const tipo = tipoForzado ?? tipoDeHoja(nombreHoja);
+  if (!tipo) throw new Error(`No se reconoce el tipo de la hoja "${nombreHoja}". Elige arriba qué información estás subiendo.`);
+  let filas: unknown[][];
+  if (fuente.clase === "plano") {
+    // raw: true deja los valores como texto; fechas y números los interpreta el importador (formato colombiano)
+    const wb = XLSX.read(fuente.texto, { type: "string", FS: fuente.separador, raw: true, dense: true });
+    filas = XLSX.utils.sheet_to_json<unknown[]>(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: null, blankrows: false });
+  } else {
+    const wb = XLSX.read(fuente.datos, { type: "array", sheets: nombreHoja, cellDates: true, dense: true, cellFormula: false, cellHTML: false, cellText: false });
+    filas = XLSX.utils.sheet_to_json<unknown[]>(wb.Sheets[nombreHoja], { header: 1, raw: true, defval: null, blankrows: false });
+  }
+  const opciones = fuente.clase === "plano" && fuente.separador === ";" ? { ...op, decimalComa: true } : op;
+  return procesarHoja(nombreHoja, filas, tipo, opciones);
 }
+
+/** Columnas que debe traer cada tipo de archivo (para la guía y las plantillas). */
+export const GUIA_COLUMNAS: Record<TipoHoja, { obligatorias: string[]; opcionales: string[] }> = {
+  ventas: {
+    obligatorias: ["Establecimiento", "Fecha Doc", "Artículo", "Base"],
+    opcionales: ["Tarifa Venta", "Tipo Documento", "Familia", "Centro de Costos", "Uds.V", "Subtotal", "Importe descuento", "Impuestos", "Neto"],
+  },
+  compras: {
+    obligatorias: ["Almacén", "Fecha", "Artículo", "Total Neto"],
+    opcionales: ["Serie / Número", "Tipo Documento", "Serie/Número Origen", "Nif", "Proveedor", "Familia", "CC", "Subartículo", "Uds.C", "Valor Unitario Con Impuesto"],
+  },
+  inventarios: {
+    obligatorias: ["Almacén", "Fecha Doc", "Artículo", "Total"],
+    opcionales: ["Serie / Número", "Familia", "Subfamilia", "Centro de Costos", "Proveedor", "Cód. Barras", "Subartículo", "Coste Línea", "Stock a Fecha", "Variación Stock", "Stock Inventario"],
+  },
+  traslados: {
+    obligatorias: ["Almacén", "Fecha Doc", "Artículo", "Coste Variación"],
+    opcionales: ["Serie / Número", "Familia", "Centro de Costos", "Subartículo", "Tipo Documento", "Motivo Traspaso", "Variación Stock", "Coste Unitario"],
+  },
+  rentabilidad: {
+    obligatorias: ["Artículo", "Precio", "Coste"],
+    opcionales: ["Grupo Almacén", "Tarifa Venta", "Familia", "Centro de Costos", "Referencia", "Impuesto", "Base"],
+  },
+};

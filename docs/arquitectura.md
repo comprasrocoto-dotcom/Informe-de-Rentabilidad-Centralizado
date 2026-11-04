@@ -61,3 +61,18 @@ tenga más de una ve un selector para cambiar entre ellas (o verlas todas juntas
 
 **Verificación.** Se simuló el ingreso de tatiana123wok@gmail.com: ve solo 123 Wok, Sin Par y Casa de Nadie;
 no ve Rocoto ni Arrebatao ni la lista de correos.
+
+## 4 de noviembre de 2026 — Cargar cada tipo de información por separado (archivo plano)
+
+**Qué cambió.** En “Cargar datos” ahora primero se elige qué se va a subir: Compras, Inventarios,
+Traslados, Ventas o Rentabilidad de carta (o, si se prefiere, el libro de Excel completo como antes).
+Luego se sube el archivo de ese tipo, que puede ser:
+- **Archivo plano** (.csv o .txt) separado por punto y coma, coma o tabulación. La página detecta sola el separador
+  y las tildes (archivos guardados desde Excel en español o en UTF-8).
+- **Excel** de una sola hoja (o de varias: se elige cuál).
+
+Para cada tipo se muestran las columnas necesarias y hay una **plantilla descargable** con los encabezados.
+
+**Números y fechas en archivos planos.** Se aceptan formatos colombianos (1.234.567,89 y fechas dd/mm/aaaa)
+y también los de punto decimal. Se probó con las compras de Sin Par (separadas por ;, con coma decimal) y los
+traslados de Rocoto (separados por coma): los totales coinciden exactamente con los Excel originales.

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "@/components/Contexto";
-import type { HojaDisponible, ResultadoHoja, TipoHoja } from "@/lib/importador";
+import { GUIA_COLUMNAS, type HojaDisponible, type ResultadoHoja, type TipoHoja } from "@/lib/importador";
 import { guardarHoja, revisarSedes, type EstadoSede } from "@/lib/subida";
 import { fmtNum } from "@/lib/formato";
 
@@ -13,11 +13,27 @@ type Carga = { id: number; marca_id: number; archivo: string; hoja: string; tipo
 const NOMBRE_TIPO: Record<TipoHoja, string> = {
   ventas: "Ventas", compras: "Compras", inventarios: "Inventarios", traslados: "Traslados", rentabilidad: "Rentabilidad de carta",
 };
+const ORDEN_TIPOS: TipoHoja[] = ["compras", "inventarios", "traslados", "ventas", "rentabilidad"];
+type Eleccion = TipoHoja | "libro";
+
+function descargarPlantilla(tipo: TipoHoja) {
+  const g = GUIA_COLUMNAS[tipo];
+  const contenido = "\uFEFF" + [...g.obligatorias, ...g.opcionales].join(";") + "\r\n";
+  const url = URL.createObjectURL(new Blob([contenido], { type: "text/csv;charset=utf-8" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `plantilla_${tipo}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function Cargar() {
   const { sb, perfil, marcas, recargarCatalogos, variasMarcas } = useApp();
   const [marcaId, setMarcaId] = useState<number | null>(perfil.rol !== "admin" && perfil.marcas.length === 1 ? perfil.marcas[0] : null);
+  const [eleccion, setEleccion] = useState<Eleccion | null>(null);
   const [archivo, setArchivo] = useState<File | null>(null);
+  const [separador, setSeparador] = useState<string | null>(null);
+  const [inputKey, setInputKey] = useState(0);
   const [hojas, setHojas] = useState<HojaDisponible[]>([]);
   const [elegidas, setElegidas] = useState<Set<string>>(new Set());
   const [fechaRespaldo, setFechaRespaldo] = useState("");
@@ -59,6 +75,7 @@ export default function Cargar() {
 
   async function elegirArchivo(f: File | null) {
     setArchivo(f);
+    setSeparador(null);
     setHojas([]);
     setLecturas({});
     setAvances({});
@@ -69,9 +86,16 @@ export default function Cargar() {
       worker.current?.terminate();
       worker.current = null;
       const datos = await f.arrayBuffer();
-      const r = await pedir<{ hojas: HojaDisponible[] }>({ cmd: "abrir", datos }, [datos]);
+      const r = await pedir<{ hojas: HojaDisponible[]; plano: { separador: string } | null }>({ cmd: "abrir", nombre: f.name, datos }, [datos]);
       setHojas(r.hojas);
-      setElegidas(new Set(r.hojas.filter((h) => h.tipo).map((h) => h.nombre)));
+      setSeparador(r.plano?.separador ?? null);
+      if (eleccion === "libro") {
+        setElegidas(new Set(r.hojas.filter((h) => h.tipo).map((h) => h.nombre)));
+      } else {
+        // Un solo tipo: se toma la hoja con ese nombre, o la primera
+        const h = r.hojas.find((x) => x.tipo === eleccion) ?? r.hojas[0];
+        setElegidas(new Set(h ? [h.nombre] : []));
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -87,7 +111,10 @@ export default function Cargar() {
     for (const h of hojas.filter((x) => elegidas.has(x.nombre))) {
       setOcupado(`Leyendo hoja “${h.nombre}”…`);
       try {
-        const { res } = await pedir<{ res: ResultadoHoja }>({ cmd: "leer", hoja: h.nombre, op: { fechaRespaldo: fechaRespaldo || null } });
+        const { res } = await pedir<{ res: ResultadoHoja }>({
+          cmd: "leer", hoja: h.nombre, op: { fechaRespaldo: fechaRespaldo || null },
+          tipo: eleccion && eleccion !== "libro" ? eleccion : null,
+        });
         const sedes = res.tipo === "rentabilidad" ? [] : await revisarSedes(sb, marcaId, res.sedes);
         nuevas[h.nombre] = { res, sedes };
       } catch (e) {
@@ -129,53 +156,104 @@ export default function Cargar() {
       <div>
         <h1 className="text-xl font-semibold">Cargar datos</h1>
         <p className="mt-1 max-w-3xl text-sm text-stone-600">
-          Sube el Excel de informes de la marca (hojas de Ventas, Compras, Inventarios, Traslados y Rentabilidad).
-          Al guardar, se <b>reemplazan</b> los datos de las mismas sedes y fechas que trae cada hoja, así que puedes volver a subir un mes para corregirlo sin duplicar.
+          Elige qué información vas a subir y luego el archivo: puede ser <b>archivo plano</b> (.csv o .txt, separado por punto y coma, coma o tabulación) o Excel.
+          Al guardar se <b>reemplazan</b> los datos de las mismas sedes y fechas que trae el archivo, así que puedes volver a subir un mes para corregirlo sin duplicar.
         </p>
       </div>
 
-      <div className="tarjeta flex flex-wrap items-end gap-4">
-        {variasMarcas ? (
-          <label className="text-xs text-stone-500"><span className="mb-1 block">Marca del archivo</span>
-            <select className="campo" value={marcaId ?? ""} onChange={(e) => { setMarcaId(e.target.value ? Number(e.target.value) : null); setLecturas({}); }}>
-              <option value="">Elige una marca…</option>
-              {marcas.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
-            </select>
-          </label>
-        ) : (
-          <div className="text-sm"><span className="text-xs text-stone-500">Marca</span><div className="font-medium">{marcaNombre(perfil.marcas[0])}</div></div>
-        )}
-        <label className="text-xs text-stone-500"><span className="mb-1 block">Archivo Excel (.xlsx)</span>
-          <input type="file" accept=".xlsx,.xlsm,.xls" className="text-sm" disabled={!!ocupado} onChange={(e) => elegirArchivo(e.target.files?.[0] ?? null)} />
-        </label>
-        <label className="text-xs text-stone-500" title="Algunos archivos traen la fecha del inventario como ###### . Esa fecha se usa solo para esas filas.">
-          <span className="mb-1 block">Fecha de corte para inventarios sin fecha (opcional)</span>
-          <input type="date" className="campo" value={fechaRespaldo} onChange={(e) => setFechaRespaldo(e.target.value)} />
-        </label>
-      </div>
+      <div className="tarjeta space-y-4">
+        <div className="flex flex-wrap items-end gap-4">
+          {variasMarcas ? (
+            <label className="text-xs text-stone-500"><span className="mb-1 block">1. Marca</span>
+              <select className="campo" value={marcaId ?? ""} disabled={!!ocupado} onChange={(e) => { setMarcaId(e.target.value ? Number(e.target.value) : null); setLecturas({}); setAvances({}); }}>
+                <option value="">Elige una marca…</option>
+                {marcas.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
+              </select>
+            </label>
+          ) : (
+            <div className="text-sm"><span className="text-xs text-stone-500">1. Marca</span><div className="font-medium">{marcaNombre(perfil.marcas[0])}</div></div>
+          )}
+        </div>
 
-      {hojas.length > 0 && (
-        <div className="tarjeta">
-          <h2 className="mb-2 text-sm font-medium">Hojas encontradas en {archivo?.name}</h2>
-          <div className="flex flex-wrap gap-3">
-            {hojas.map((h) => (
-              <label key={h.nombre} className={`flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm ${h.tipo ? "border-stone-300" : "border-dashed border-stone-200 text-stone-400"}`}>
-                <input
-                  type="checkbox" disabled={!h.tipo || !!ocupado} checked={elegidas.has(h.nombre)}
-                  onChange={(e) => {
-                    const s = new Set(elegidas);
-                    if (e.target.checked) s.add(h.nombre); else s.delete(h.nombre);
-                    setElegidas(s);
-                  }}
-                />
-                {h.nombre} <span className="text-xs text-stone-500">{h.tipo ? `→ ${NOMBRE_TIPO[h.tipo]}` : "(no se reconoce)"}</span>
-              </label>
+        <div>
+          <div className="mb-1 text-xs text-stone-500">2. ¿Qué vas a subir?</div>
+          <div className="flex flex-wrap gap-2">
+            {[...ORDEN_TIPOS, "libro" as const].map((t) => (
+              <button
+                key={t} type="button" disabled={!!ocupado}
+                onClick={() => { setEleccion(t); setArchivo(null); setHojas([]); setLecturas({}); setAvances({}); setInputKey((k) => k + 1); }}
+                className={`rounded-lg border px-3 py-2 text-sm ${eleccion === t ? "border-blue-600 bg-blue-50 font-medium text-blue-800" : "border-stone-300 bg-white hover:bg-stone-50"}`}
+              >
+                {t === "libro" ? "Libro completo (varias hojas)" : NOMBRE_TIPO[t]}
+              </button>
             ))}
           </div>
-          <button className="boton mt-3" disabled={!!ocupado || elegidas.size === 0 || !marcaId} onClick={leer}>1. Leer y revisar</button>
-          {!marcaId && <span className="ml-3 text-xs text-stone-500">Elige primero la marca.</span>}
         </div>
-      )}
+
+        {eleccion && eleccion !== "libro" && (
+          <div className="rounded-md bg-stone-50 p-3 text-xs text-stone-600">
+            <b>Columnas necesarias para {NOMBRE_TIPO[eleccion]}:</b> {GUIA_COLUMNAS[eleccion].obligatorias.join(", ")}.
+            <span className="text-stone-500"> Opcionales: {GUIA_COLUMNAS[eleccion].opcionales.join(", ")}.</span>{" "}
+            Los nombres pueden variar un poco (con o sin tildes).{" "}
+            <button type="button" className="text-blue-700 underline" onClick={() => descargarPlantilla(eleccion)}>Descargar plantilla</button>
+          </div>
+        )}
+
+        {eleccion && (
+          <div className="flex flex-wrap items-end gap-4">
+            <label className="text-xs text-stone-500"><span className="mb-1 block">3. Archivo {eleccion === "libro" ? "Excel" : "plano (.csv / .txt) o Excel"}</span>
+              <input
+                key={inputKey} type="file" className="text-sm" disabled={!!ocupado}
+                accept={eleccion === "libro" ? ".xlsx,.xlsm,.xls" : ".csv,.txt,.tsv,.xlsx,.xlsm,.xls"}
+                onChange={(e) => elegirArchivo(e.target.files?.[0] ?? null)}
+              />
+            </label>
+            {(eleccion === "inventarios" || eleccion === "libro") && (
+              <label className="text-xs text-stone-500" title="Algunos archivos traen la fecha del inventario como ###### . Esa fecha se usa solo para esas filas.">
+                <span className="mb-1 block">Fecha de corte para filas sin fecha (opcional)</span>
+                <input type="date" className="campo" value={fechaRespaldo} onChange={(e) => setFechaRespaldo(e.target.value)} />
+              </label>
+            )}
+          </div>
+        )}
+
+        {hojas.length > 0 && eleccion && (
+          <div className="border-t border-stone-100 pt-3">
+            {separador && (
+              <p className="mb-2 text-xs text-stone-500">
+                Archivo plano · separador detectado: <b>{separador === "\t" ? "tabulación" : separador === ";" ? "punto y coma (;)" : separador === "," ? "coma (,)" : separador}</b>
+              </p>
+            )}
+            {eleccion === "libro" ? (
+              <div className="flex flex-wrap gap-3">
+                {hojas.map((h) => (
+                  <label key={h.nombre} className={`flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm ${h.tipo ? "border-stone-300" : "border-dashed border-stone-200 text-stone-400"}`}>
+                    <input
+                      type="checkbox" disabled={!h.tipo || !!ocupado} checked={elegidas.has(h.nombre)}
+                      onChange={(e) => {
+                        const s = new Set(elegidas);
+                        if (e.target.checked) s.add(h.nombre); else s.delete(h.nombre);
+                        setElegidas(s);
+                      }}
+                    />
+                    {h.nombre} <span className="text-xs text-stone-500">{h.tipo ? `→ ${NOMBRE_TIPO[h.tipo]}` : "(no se reconoce)"}</span>
+                  </label>
+                ))}
+              </div>
+            ) : hojas.length > 1 ? (
+              <label className="text-xs text-stone-500"><span className="mb-1 block">El archivo tiene varias hojas: ¿cuál es la de {NOMBRE_TIPO[eleccion]}?</span>
+                <select className="campo" value={[...elegidas][0] ?? ""} onChange={(e) => setElegidas(new Set([e.target.value]))}>
+                  {hojas.map((h) => <option key={h.nombre} value={h.nombre}>{h.nombre}</option>)}
+                </select>
+              </label>
+            ) : null}
+            <div className="mt-3">
+              <button className="boton" disabled={!!ocupado || elegidas.size === 0 || !marcaId} onClick={leer}>4. Leer y revisar</button>
+              {!marcaId && <span className="ml-3 text-xs text-stone-500">Elige primero la marca.</span>}
+            </div>
+          </div>
+        )}
+      </div>
 
       {ocupado && <p className="rounded-md bg-blue-50 p-3 text-sm text-blue-800">{ocupado}</p>}
       {error && <p className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
@@ -228,7 +306,7 @@ export default function Cargar() {
             </tbody>
           </table>
           <div className="border-t border-stone-100 p-3">
-            <button className="boton" disabled={!!ocupado || !hayLecturas} onClick={guardar}>2. Guardar en la base de datos</button>
+            <button className="boton" disabled={!!ocupado || !hayLecturas} onClick={guardar}>5. Guardar en la base de datos</button>
           </div>
         </div>
       )}
