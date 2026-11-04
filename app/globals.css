@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+:root {
+  --surface-1: #fcfcfb;
+  --series-1: #2a78d6;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --grid: #e7e6e2;
+  --alerta: #c2410c;
+}
+
+body {
+  background: #f6f6f4;
+  color: var(--text-primary);
+}
+
+.tarjeta {
+  @apply rounded-xl border border-stone-200 bg-white p-4 shadow-sm;
+}
+
+.tabla {
+  @apply w-full text-sm;
+}
+.tabla th {
+  @apply sticky top-0 bg-stone-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-stone-500;
+}
+.tabla td {
+  @apply border-t border-stone-100 px-3 py-1.5;
+}
+.tabla td.num,
+.tabla th.num {
+  @apply text-right tabular-nums;
+}
+
+.campo {
+  @apply rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200;
+}
+.boton {
+  @apply inline-flex items-center justify-center gap-2 rounded-md bg-blue-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50;
+}
+.boton-sec {
+  @apply inline-flex items-center justify-center gap-2 rounded-md border border-stone-300 bg-white px-3.5 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50;
+}
