@@ -3,12 +3,12 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 
-export type Perfil = { email: string; rol: "admin" | "marca"; marca_id: number | null };
+export type Perfil = { email: string; rol: "admin" | "marca"; marcas: number[] };
 export type Marca = { id: number; nombre: string };
 export type Sede = { id: number; marca_id: number; nombre: string; tipo: "punto_venta" | "produccion" };
 
 type Filtros = {
-  marcaId: number | null; // null = todas (solo admin)
+  marcaId: number | null; // null = todas las marcas que el usuario puede ver
   sedeId: number | null; // null = todas las sedes
   desde: string;
   hasta: string;
@@ -20,6 +20,8 @@ type Ctx = {
   sedes: Sede[];
   filtros: Filtros;
   setFiltros: (f: Partial<Filtros>) => void;
+  /** true si el usuario puede elegir entre varias marcas (admin o con más de una) */
+  variasMarcas: boolean;
   recargarCatalogos: () => Promise<void>;
   sb: ReturnType<typeof crearClienteNavegador>;
 };
@@ -44,7 +46,7 @@ export function ProveedorApp({ perfil, children }: { perfil: Perfil; children: R
   const [marcas, setMarcas] = useState<Marca[]>([]);
   const [sedes, setSedes] = useState<Sede[]>([]);
   const [filtros, setF] = useState<Filtros>({
-    marcaId: perfil.rol === "admin" ? null : perfil.marca_id,
+    marcaId: perfil.rol !== "admin" && perfil.marcas.length === 1 ? perfil.marcas[0] : null,
     sedeId: null,
     desde: primerDiaHaceMeses(12),
     hasta: new Date().toISOString().slice(0, 10),
@@ -68,7 +70,7 @@ export function ProveedorApp({ perfil, children }: { perfil: Perfil; children: R
           ...f,
           desde: typeof g.desde === "string" ? g.desde : f.desde,
           hasta: typeof g.hasta === "string" ? g.hasta : f.hasta,
-          marcaId: perfil.rol === "admin" && (typeof g.marcaId === "number" || g.marcaId === null) ? g.marcaId : f.marcaId,
+          marcaId: marcaPermitida(g.marcaId) ? g.marcaId : f.marcaId,
         }));
       }
     } catch {
@@ -77,10 +79,18 @@ export function ProveedorApp({ perfil, children }: { perfil: Perfil; children: R
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const variasMarcas = perfil.rol === "admin" || perfil.marcas.length > 1;
+
+  function marcaPermitida(m: unknown): m is number | null {
+    if (m === null) return variasMarcas;
+    if (typeof m !== "number") return false;
+    return perfil.rol === "admin" || perfil.marcas.includes(m);
+  }
+
   function setFiltros(p: Partial<Filtros>) {
     setF((f) => {
       const n = { ...f, ...p };
-      if (perfil.rol !== "admin") n.marcaId = perfil.marca_id;
+      if (!marcaPermitida(n.marcaId)) n.marcaId = f.marcaId;
       if (p.marcaId !== undefined && p.marcaId !== f.marcaId) n.sedeId = null;
       try {
         localStorage.setItem("filtros-rentabilidad", JSON.stringify({ desde: n.desde, hasta: n.hasta, marcaId: n.marcaId }));
@@ -92,7 +102,7 @@ export function ProveedorApp({ perfil, children }: { perfil: Perfil; children: R
   }
 
   return (
-    <Contexto.Provider value={{ perfil, marcas, sedes, filtros, setFiltros, recargarCatalogos, sb }}>
+    <Contexto.Provider value={{ perfil, marcas, sedes, filtros, setFiltros, variasMarcas, recargarCatalogos, sb }}>
       {children}
     </Contexto.Provider>
   );

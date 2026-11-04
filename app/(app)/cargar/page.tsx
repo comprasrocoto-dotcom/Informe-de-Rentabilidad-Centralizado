@@ -15,8 +15,8 @@ const NOMBRE_TIPO: Record<TipoHoja, string> = {
 };
 
 export default function Cargar() {
-  const { sb, perfil, marcas, recargarCatalogos } = useApp();
-  const [marcaId, setMarcaId] = useState<number | null>(perfil.rol === "admin" ? null : perfil.marca_id);
+  const { sb, perfil, marcas, recargarCatalogos, variasMarcas } = useApp();
+  const [marcaId, setMarcaId] = useState<number | null>(perfil.rol !== "admin" && perfil.marcas.length === 1 ? perfil.marcas[0] : null);
   const [archivo, setArchivo] = useState<File | null>(null);
   const [hojas, setHojas] = useState<HojaDisponible[]>([]);
   const [elegidas, setElegidas] = useState<Set<string>>(new Set());
@@ -135,7 +135,7 @@ export default function Cargar() {
       </div>
 
       <div className="tarjeta flex flex-wrap items-end gap-4">
-        {perfil.rol === "admin" ? (
+        {variasMarcas ? (
           <label className="text-xs text-stone-500"><span className="mb-1 block">Marca del archivo</span>
             <select className="campo" value={marcaId ?? ""} onChange={(e) => { setMarcaId(e.target.value ? Number(e.target.value) : null); setLecturas({}); }}>
               <option value="">Elige una marca…</option>
@@ -143,7 +143,7 @@ export default function Cargar() {
             </select>
           </label>
         ) : (
-          <div className="text-sm"><span className="text-xs text-stone-500">Marca</span><div className="font-medium">{marcaNombre(perfil.marca_id!)}</div></div>
+          <div className="text-sm"><span className="text-xs text-stone-500">Marca</span><div className="font-medium">{marcaNombre(perfil.marcas[0])}</div></div>
         )}
         <label className="text-xs text-stone-500"><span className="mb-1 block">Archivo Excel (.xlsx)</span>
           <input type="file" accept=".xlsx,.xlsm,.xls" className="text-sm" disabled={!!ocupado} onChange={(e) => elegirArchivo(e.target.files?.[0] ?? null)} />
@@ -236,12 +236,12 @@ export default function Cargar() {
       <div className="tarjeta overflow-x-auto !p-0">
         <h2 className="px-4 pt-3 text-sm font-medium">Historial de cargas</h2>
         <table className="tabla mt-2">
-          <thead><tr><th>Fecha</th>{perfil.rol === "admin" && <th>Marca</th>}<th>Archivo</th><th>Hoja</th><th>Período</th><th className="num">Filas guardadas</th></tr></thead>
+          <thead><tr><th>Fecha</th>{variasMarcas && <th>Marca</th>}<th>Archivo</th><th>Hoja</th><th>Período</th><th className="num">Filas guardadas</th></tr></thead>
           <tbody>
             {historial.length === 0 ? <tr><td colSpan={6} className="text-stone-500">Aún no hay cargas.</td></tr> : historial.map((c) => (
               <tr key={c.id}>
                 <td className="whitespace-nowrap">{new Date(c.created_at).toLocaleString("es-CO")}</td>
-                {perfil.rol === "admin" && <td>{marcaNombre(c.marca_id)}</td>}
+                {variasMarcas && <td>{marcaNombre(c.marca_id)}</td>}
                 <td>{c.archivo}</td>
                 <td>{c.hoja}</td>
                 <td className="whitespace-nowrap">{c.desde ? `${c.desde} a ${c.hasta}` : "—"}</td>

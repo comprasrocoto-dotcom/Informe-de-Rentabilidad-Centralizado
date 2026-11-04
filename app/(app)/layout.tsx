@@ -8,13 +8,19 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) redirect("/login");
 
-  const { data: perfil } = await supabase
+  const { data: fila } = await supabase
     .from("perfiles")
-    .select("email, rol, marca_id")
+    .select("email, rol")
     .eq("user_id", auth.user.id)
     .maybeSingle();
+  const { data: am } = fila
+    ? await supabase.from("accesos_marcas").select("marca_id").eq("email", fila.email)
+    : { data: [] };
+  const perfil: Perfil | null = fila
+    ? { email: fila.email, rol: fila.rol, marcas: (am ?? []).map((x) => x.marca_id as number) }
+    : null;
 
-  if (!perfil || (perfil.rol !== "admin" && !perfil.marca_id)) {
+  if (!perfil || (perfil.rol !== "admin" && perfil.marcas.length === 0)) {
     return (
       <main className="flex min-h-screen items-center justify-center p-4">
         <div className="tarjeta max-w-md text-sm">
@@ -32,7 +38,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
   }
 
   return (
-    <ProveedorApp perfil={perfil as Perfil}>
+    <ProveedorApp perfil={perfil}>
       <Menu />
       <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
     </ProveedorApp>

@@ -3,12 +3,12 @@
 import { useApp } from "./Contexto";
 
 export function BarraFiltros({ sinFechas = false, sinSede = false }: { sinFechas?: boolean; sinSede?: boolean }) {
-  const { perfil, marcas, sedes, filtros, setFiltros } = useApp();
+  const { perfil, marcas, sedes, filtros, setFiltros, variasMarcas } = useApp();
   const sedesMarca = sedes.filter((s) => filtros.marcaId == null || s.marca_id === filtros.marcaId);
 
   return (
     <div className="mb-4 flex flex-wrap items-end gap-3">
-      {perfil.rol === "admin" && (
+      {variasMarcas && (
         <label className="text-xs text-stone-500">
           <span className="mb-1 block">Marca</span>
           <select
@@ -16,7 +16,7 @@ export function BarraFiltros({ sinFechas = false, sinSede = false }: { sinFechas
             value={filtros.marcaId ?? ""}
             onChange={(e) => setFiltros({ marcaId: e.target.value ? Number(e.target.value) : null })}
           >
-            <option value="">Todas las marcas</option>
+            <option value="">{perfil.rol === "admin" ? "Todas las marcas" : "Todas mis marcas"}</option>
             {marcas.map((m) => (
               <option key={m.id} value={m.id}>{m.nombre}</option>
             ))}

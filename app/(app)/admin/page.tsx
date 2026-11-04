@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/Contexto";
 
-type Acceso = { email: string; marca_id: number | null; rol: "admin" | "marca" };
+type Acceso = { email: string; rol: "admin" | "marca"; marcas: number[] };
 type PerfilFila = { email: string; created_at: string };
 type Alias = { marca_id: number; alias: string; sede_id: number };
 
@@ -12,17 +12,22 @@ export default function Admin() {
   const [accesos, setAccesos] = useState<Acceso[]>([]);
   const [activos, setActivos] = useState<Map<string, string>>(new Map());
   const [alias, setAlias] = useState<Alias[]>([]);
-  const [nuevo, setNuevo] = useState<{ email: string; marca_id: string; rol: "marca" | "admin" }>({ email: "", marca_id: "", rol: "marca" });
+  const [nuevo, setNuevo] = useState<{ email: string; marcas: number[]; rol: "marca" | "admin" }>({ email: "", marcas: [], rol: "marca" });
   const [nuevaMarca, setNuevaMarca] = useState("");
   const [msg, setMsg] = useState<{ ok: boolean; texto: string } | null>(null);
 
   async function cargar() {
-    const [a, p, al] = await Promise.all([
-      sb.from("accesos").select("email,marca_id,rol").order("email"),
+    const [a, am, p, al] = await Promise.all([
+      sb.from("accesos").select("email,rol").order("email"),
+      sb.from("accesos_marcas").select("email,marca_id"),
       sb.from("perfiles").select("email,created_at"),
       sb.from("sede_alias").select("marca_id,alias,sede_id").order("alias"),
     ]);
-    setAccesos((a.data as Acceso[]) ?? []);
+    const porEmail = new Map<string, number[]>();
+    for (const x of (am.data as { email: string; marca_id: number }[]) ?? []) {
+      porEmail.set(x.email, [...(porEmail.get(x.email) ?? []), x.marca_id]);
+    }
+    setAccesos(((a.data as { email: string; rol: Acceso["rol"] }[]) ?? []).map((x) => ({ ...x, marcas: porEmail.get(x.email) ?? [] })));
     setActivos(new Map(((p.data as PerfilFila[]) ?? []).map((x) => [x.email, x.created_at])));
     setAlias((al.data as Alias[]) ?? []);
   }
@@ -33,17 +38,24 @@ export default function Admin() {
 
   const avisar = (ok: boolean, texto: string) => setMsg({ ok, texto });
   const marcaNombre = (id: number | null) => marcas.find((m) => m.id === id)?.nombre ?? "—";
+  const alternarMarca = (id: number) =>
+    setNuevo((n) => ({ ...n, marcas: n.marcas.includes(id) ? n.marcas.filter((x) => x !== id) : [...n.marcas, id] }));
 
   async function agregarAcceso(e: React.FormEvent) {
     e.preventDefault();
     const email = nuevo.email.trim().toLowerCase();
-    if (nuevo.rol === "marca" && !nuevo.marca_id) return avisar(false, "Elige la marca del correo.");
-    const { error } = await sb.from("accesos").upsert({
-      email, rol: nuevo.rol, marca_id: nuevo.rol === "admin" ? null : Number(nuevo.marca_id),
-    });
+    if (nuevo.rol === "marca" && nuevo.marcas.length === 0) return avisar(false, "Elige al menos una marca para el correo.");
+    const { error } = await sb.from("accesos").upsert({ email, rol: nuevo.rol });
     if (error) return avisar(false, error.message);
-    setNuevo({ email: "", marca_id: "", rol: "marca" });
-    avisar(true, `Listo. ${email} ya puede entrar a la página y usar “Activar cuenta” para crear su clave.`);
+    // Reemplazar las marcas del correo por las elegidas
+    const { error: e1 } = await sb.from("accesos_marcas").delete().eq("email", email);
+    if (e1) return avisar(false, e1.message);
+    if (nuevo.rol === "marca") {
+      const { error: e2 } = await sb.from("accesos_marcas").insert(nuevo.marcas.map((marca_id) => ({ email, marca_id })));
+      if (e2) return avisar(false, e2.message);
+    }
+    setNuevo({ email: "", marcas: [], rol: "marca" });
+    avisar(true, `Listo. ${email} puede entrar a la página; si aún no tiene cuenta, usa “Activar cuenta” para crear su clave.`);
     cargar();
   }
 
@@ -88,7 +100,7 @@ export default function Admin() {
       <section className="tarjeta">
         <h2 className="mb-1 font-medium">Correos con acceso</h2>
         <p className="mb-3 text-sm text-stone-600">
-          Registra aquí el correo de cada marca. Luego esa persona entra a la página, elige <b>“Activar cuenta”</b> y crea su propia clave
+          Registra aquí cada correo y marca las marcas que puede ver (puede ser más de una). Luego esa persona entra a la página, elige <b>“Activar cuenta”</b> y crea su propia clave
           (le llega un correo para confirmar). Cada marca solo ve sus datos.
         </p>
         <form onSubmit={agregarAcceso} className="mb-4 flex flex-wrap items-end gap-2">
@@ -98,12 +110,15 @@ export default function Admin() {
             <option value="admin">Administrador (ve todo)</option>
           </select>
           {nuevo.rol === "marca" && (
-            <select className="campo" value={nuevo.marca_id} onChange={(e) => setNuevo({ ...nuevo, marca_id: e.target.value })}>
-              <option value="">Marca…</option>
-              {marcas.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
-            </select>
+            <div className="flex flex-wrap gap-2">
+              {marcas.map((m) => (
+                <label key={m.id} className="flex items-center gap-1 rounded-md border border-stone-300 px-2 py-1 text-sm">
+                  <input type="checkbox" checked={nuevo.marcas.includes(m.id)} onChange={() => alternarMarca(m.id)} /> {m.nombre}
+                </label>
+              ))}
+            </div>
           )}
-          <button className="boton">Agregar</button>
+          <button className="boton">Guardar</button>
         </form>
         <table className="tabla">
           <thead><tr><th>Correo</th><th>Rol</th><th>Marca</th><th>Cuenta</th><th></th></tr></thead>
@@ -112,9 +127,12 @@ export default function Admin() {
               <tr key={a.email}>
                 <td>{a.email}</td>
                 <td>{a.rol === "admin" ? "Administrador" : "Marca"}</td>
-                <td>{a.rol === "admin" ? "Todas" : marcaNombre(a.marca_id)}</td>
+                <td>{a.rol === "admin" ? "Todas" : a.marcas.map(marcaNombre).sort().join(", ") || "—"}</td>
                 <td>{activos.has(a.email) ? <span className="text-green-700">Activa</span> : <span className="text-stone-500">Pendiente de activar</span>}</td>
-                <td className="text-right"><button className="text-xs text-red-700 hover:underline" onClick={() => quitarAcceso(a.email)}>Quitar</button></td>
+                <td className="whitespace-nowrap text-right">
+                  <button className="mr-3 text-xs text-blue-700 hover:underline" onClick={() => setNuevo({ email: a.email, rol: a.rol, marcas: a.marcas })}>Editar</button>
+                  <button className="text-xs text-red-700 hover:underline" onClick={() => quitarAcceso(a.email)}>Quitar</button>
+                </td>
               </tr>
             ))}
           </tbody>

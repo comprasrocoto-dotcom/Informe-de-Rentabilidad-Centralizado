@@ -16,7 +16,7 @@ export function Menu() {
   const { perfil, marcas, sb } = useApp();
   const ruta = usePathname();
   const router = useRouter();
-  const marca = marcas.find((m) => m.id === perfil.marca_id);
+  const misMarcas = marcas.filter((m) => perfil.marcas.includes(m.id)).map((m) => m.nombre).join(" · ");
   const enlaces = perfil.rol === "admin" ? [...ENLACES, { href: "/admin", texto: "Administración" }] : ENLACES;
 
   async function salir() {
@@ -31,7 +31,7 @@ export function Menu() {
         <div className="mr-2">
           <div className="text-sm font-semibold">Informe de Rentabilidad</div>
           <div className="text-xs text-stone-500">
-            {perfil.rol === "admin" ? "Administrador · todas las marcas" : marca?.nombre ?? "…"}
+            {perfil.rol === "admin" ? "Administrador · todas las marcas" : misMarcas || "…"}
           </div>
         </div>
         <nav className="flex flex-1 flex-wrap gap-1 text-sm">

@@ -48,3 +48,16 @@ Solo los correos pre-registrados pueden crear cuenta.
    Descuentos y otras ventas se siguen viendo en la sección Ventas y como nota informativa en el Resumen.
 3. Aseo, empaque y utensilios quedan aparte como “Otros costos” y no suman al % de costo. ✔
 4. Las hojas de RENTABILIDAD de 123 Wok y Casa de Nadie se volverán a subir con la información correcta.
+
+## 4 de noviembre de 2026 — Un correo puede ver varias marcas
+
+**Qué cambió.** Antes cada correo tenía una sola marca. Ahora un correo puede tener varias, y quien
+tenga más de una ve un selector para cambiar entre ellas (o verlas todas juntas).
+
+**Accesos registrados:**
+- comprasrocoto@gmail.com → Administrador (todas las marcas)
+- admi.inversionesrocoto@hotmail.com → ROCOTO y ARREBATAO
+- tatiana123wok@gmail.com → 123 WOK, SIN PAR y CASA DE NADIE
+
+**Verificación.** Se simuló el ingreso de tatiana123wok@gmail.com: ve solo 123 Wok, Sin Par y Casa de Nadie;
+no ve Rocoto ni Arrebatao ni la lista de correos.
