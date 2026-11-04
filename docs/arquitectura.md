@@ -85,3 +85,10 @@ muestra si cada carga está **Vigente** o fue **Reemplazada** por una carga post
 
 La seguridad la aplica la base de datos: un usuario solo puede borrar cargas de sus propias marcas
 (se probó que el usuario de Rocoto/Arrebatao no puede borrar una carga de 123 Wok).
+
+## 4 de noviembre de 2026 — Filtro por mes
+
+En Resumen, Ventas y Compras hay un selector **Mes** que muestra solo los meses que tienen datos para la
+marca elegida. Al escoger un mes, Desde y Hasta se ajustan solos a ese mes. También tiene “Todos los meses
+con datos” y “Últimos 3 meses con datos”. Desde/Hasta siguen disponibles para rangos personalizados.
+El Historial de cargas también se puede filtrar por mes.

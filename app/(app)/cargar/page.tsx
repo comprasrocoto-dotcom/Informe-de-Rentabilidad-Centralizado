@@ -45,12 +45,13 @@ export default function Cargar() {
   const [vigentes, setVigentes] = useState<Record<number, number>>({});
   const [borrando, setBorrando] = useState<number | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+  const [mesHistorial, setMesHistorial] = useState("");
   const worker = useRef<Worker | null>(null);
   const pendientes = useRef(new Map<number, (v: { ok: boolean; error?: string; hojas?: HojaDisponible[]; res?: ResultadoHoja }) => void>());
   const contador = useRef(0);
 
   async function cargarHistorial() {
-    let q = sb.from("cargas").select("*").order("created_at", { ascending: false }).limit(40);
+    let q = sb.from("cargas").select("*").order("created_at", { ascending: false }).limit(200);
     if (marcaId) q = q.eq("marca_id", marcaId);
     const { data } = await q;
     const lista = (data as Carga[]) ?? [];
@@ -172,6 +173,26 @@ export default function Cargar() {
     setAviso(`Listo: se borraron ${Number(data ?? 0).toLocaleString("es-CO")} filas y la carga salió del historial.`);
     await cargarHistorial();
   }
+
+  // Meses que cubre alguna carga (para el filtro del historial)
+  const mesesHistorial = [...new Set(historial.flatMap((c) => {
+    if (!c.desde || !c.hasta) return [];
+    const out: string[] = [];
+    let [y, m] = c.desde.slice(0, 7).split("-").map(Number);
+    const fin = c.hasta.slice(0, 7);
+    for (let i = 0; i < 120; i++) {
+      const k = `${y}-${String(m).padStart(2, "0")}`;
+      out.push(k);
+      if (k >= fin) break;
+      m++; if (m > 12) { m = 1; y++; }
+    }
+    return out;
+  }))].sort().reverse();
+  const historialFiltrado = mesHistorial
+    ? historial.filter((c) => c.desde && c.hasta && c.desde.slice(0, 7) <= mesHistorial && c.hasta.slice(0, 7) >= mesHistorial)
+    : historial;
+  const NOMBRES_MES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+  const nombreMes = (k: string) => `${NOMBRES_MES[Number(k.slice(5, 7)) - 1]} ${k.slice(0, 4)}`;
 
   const hayLecturas = Object.values(lecturas).some((l) => l.res && l.res.filas.length > 0);
   const marcaNombre = (id: number) => marcas.find((m) => m.id === id)?.nombre ?? "";
@@ -337,7 +358,15 @@ export default function Cargar() {
       )}
 
       <div className="tarjeta overflow-x-auto !p-0">
-        <h2 className="px-4 pt-3 text-sm font-medium">Historial de cargas</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-3">
+          <h2 className="text-sm font-medium">Historial de cargas</h2>
+          <label className="flex items-center gap-2 text-xs text-stone-500">Mes
+            <select className="campo !py-1" value={mesHistorial} onChange={(e) => setMesHistorial(e.target.value)}>
+              <option value="">Todos</option>
+              {mesesHistorial.map((m) => <option key={m} value={m}>{nombreMes(m)}</option>)}
+            </select>
+          </label>
+        </div>
         <p className="px-4 text-xs text-stone-500">
           Si subiste un archivo equivocado, pulsa <b>Borrar</b> en esa fila: se eliminan solo los datos que entraron con esa carga.
           Una carga marcada como “Reemplazada” ya no tiene datos porque otra posterior la sustituyó.
@@ -351,7 +380,7 @@ export default function Cargar() {
             </tr>
           </thead>
           <tbody>
-            {historial.length === 0 ? <tr><td colSpan={8} className="text-stone-500">Aún no hay cargas.</td></tr> : historial.map((c) => {
+            {historialFiltrado.length === 0 ? <tr><td colSpan={8} className="text-stone-500">{historial.length ? "No hay cargas de ese mes." : "Aún no hay cargas."}</td></tr> : historialFiltrado.map((c) => {
               const n = vigentes[c.id];
               return (
                 <tr key={c.id}>
