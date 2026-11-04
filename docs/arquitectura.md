@@ -76,3 +76,12 @@ Para cada tipo se muestran las columnas necesarias y hay una **plantilla descarg
 **Números y fechas en archivos planos.** Se aceptan formatos colombianos (1.234.567,89 y fechas dd/mm/aaaa)
 y también los de punto decimal. Se probó con las compras de Sin Par (separadas por ;, con coma decimal) y los
 traslados de Rocoto (separados por coma): los totales coinciden exactamente con los Excel originales.
+
+## 4 de noviembre de 2026 — Borrar una carga equivocada
+
+En “Cargar datos → Historial de cargas” cada carga tiene un botón **Borrar**. Elimina únicamente los datos
+que entraron con esa carga (y la quita del historial), después de pedir confirmación. El historial también
+muestra si cada carga está **Vigente** o fue **Reemplazada** por una carga posterior del mismo período.
+
+La seguridad la aplica la base de datos: un usuario solo puede borrar cargas de sus propias marcas
+(se probó que el usuario de Rocoto/Arrebatao no puede borrar una carga de 123 Wok).

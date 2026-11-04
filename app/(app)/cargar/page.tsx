@@ -42,6 +42,9 @@ export default function Cargar() {
   const [ocupado, setOcupado] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [historial, setHistorial] = useState<Carga[]>([]);
+  const [vigentes, setVigentes] = useState<Record<number, number>>({});
+  const [borrando, setBorrando] = useState<number | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
   const worker = useRef<Worker | null>(null);
   const pendientes = useRef(new Map<number, (v: { ok: boolean; error?: string; hojas?: HojaDisponible[]; res?: ResultadoHoja }) => void>());
   const contador = useRef(0);
@@ -50,7 +53,12 @@ export default function Cargar() {
     let q = sb.from("cargas").select("*").order("created_at", { ascending: false }).limit(40);
     if (marcaId) q = q.eq("marca_id", marcaId);
     const { data } = await q;
-    setHistorial((data as Carga[]) ?? []);
+    const lista = (data as Carga[]) ?? [];
+    setHistorial(lista);
+    if (lista.length) {
+      const { data: f } = await sb.rpc("filas_por_carga", { p_ids: lista.map((c) => c.id) });
+      setVigentes(Object.fromEntries(((f as { carga_id: number; filas: number }[]) ?? []).map((x) => [x.carga_id, Number(x.filas)])));
+    }
   }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { cargarHistorial(); }, [marcaId]);
@@ -145,6 +153,23 @@ export default function Cargar() {
     }
     setOcupado(null);
     await recargarCatalogos();
+    await cargarHistorial();
+  }
+
+  async function borrarCarga(c: Carga) {
+    const n = vigentes[c.id] ?? 0;
+    const detalle = n > 0
+      ? `Se borrarán ${n.toLocaleString("es-CO")} filas de ${NOMBRE_TIPO[c.tipo as TipoHoja] ?? c.tipo} de ${marcaNombre(c.marca_id)}` +
+        (c.desde ? ` (${c.desde} a ${c.hasta})` : "") + ` que entraron con el archivo “${c.archivo}”.`
+      : `Esta carga ya no tiene datos (fue reemplazada por una carga posterior). Solo se quitará del historial.`;
+    if (!window.confirm(`${detalle}\n\nEsto no se puede deshacer. ¿Continuar?`)) return;
+    setBorrando(c.id);
+    setAviso(null);
+    setError(null);
+    const { data, error } = await sb.rpc("borrar_carga", { p_carga: c.id });
+    setBorrando(null);
+    if (error) return setError(`No se pudo borrar: ${error.message}`);
+    setAviso(`Listo: se borraron ${Number(data ?? 0).toLocaleString("es-CO")} filas y la carga salió del historial.`);
     await cargarHistorial();
   }
 
@@ -313,19 +338,44 @@ export default function Cargar() {
 
       <div className="tarjeta overflow-x-auto !p-0">
         <h2 className="px-4 pt-3 text-sm font-medium">Historial de cargas</h2>
+        <p className="px-4 text-xs text-stone-500">
+          Si subiste un archivo equivocado, pulsa <b>Borrar</b> en esa fila: se eliminan solo los datos que entraron con esa carga.
+          Una carga marcada como “Reemplazada” ya no tiene datos porque otra posterior la sustituyó.
+        </p>
+        {aviso && <p className="mx-4 mt-2 rounded-md bg-green-50 p-2 text-sm text-green-800">{aviso}</p>}
         <table className="tabla mt-2">
-          <thead><tr><th>Fecha</th>{variasMarcas && <th>Marca</th>}<th>Archivo</th><th>Hoja</th><th>Período</th><th className="num">Filas guardadas</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Fecha</th>{variasMarcas && <th>Marca</th>}<th>Tipo</th><th>Archivo</th><th>Período</th>
+              <th className="num">Filas guardadas</th><th>Estado</th><th></th>
+            </tr>
+          </thead>
           <tbody>
-            {historial.length === 0 ? <tr><td colSpan={6} className="text-stone-500">Aún no hay cargas.</td></tr> : historial.map((c) => (
-              <tr key={c.id}>
-                <td className="whitespace-nowrap">{new Date(c.created_at).toLocaleString("es-CO")}</td>
-                {variasMarcas && <td>{marcaNombre(c.marca_id)}</td>}
-                <td>{c.archivo}</td>
-                <td>{c.hoja}</td>
-                <td className="whitespace-nowrap">{c.desde ? `${c.desde} a ${c.hasta}` : "—"}</td>
-                <td className="num">{fmtNum(c.filas_guardadas)}{c.filas_guardadas < c.filas_leidas && <span className="ml-1 text-amber-700" title="La carga no terminó">⚠</span>}</td>
-              </tr>
-            ))}
+            {historial.length === 0 ? <tr><td colSpan={8} className="text-stone-500">Aún no hay cargas.</td></tr> : historial.map((c) => {
+              const n = vigentes[c.id];
+              return (
+                <tr key={c.id}>
+                  <td className="whitespace-nowrap">{new Date(c.created_at).toLocaleString("es-CO")}</td>
+                  {variasMarcas && <td>{marcaNombre(c.marca_id)}</td>}
+                  <td>{NOMBRE_TIPO[c.tipo as TipoHoja] ?? c.tipo}</td>
+                  <td className="max-w-56 truncate" title={`${c.archivo} · hoja ${c.hoja}`}>{c.archivo}</td>
+                  <td className="whitespace-nowrap">{c.desde ? `${c.desde} a ${c.hasta}` : "—"}</td>
+                  <td className="num">{fmtNum(c.filas_guardadas)}{c.filas_guardadas < c.filas_leidas && <span className="ml-1 text-amber-700" title="La carga no terminó">⚠</span>}</td>
+                  <td className="whitespace-nowrap text-xs">
+                    {n === undefined ? "…" : n > 0 ? <span className="text-green-700">Vigente</span> : <span className="text-stone-500">Reemplazada</span>}
+                  </td>
+                  <td className="text-right">
+                    <button
+                      className="rounded-md border border-red-200 px-2 py-0.5 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50"
+                      disabled={borrando !== null || !!ocupado}
+                      onClick={() => borrarCarga(c)}
+                    >
+                      {borrando === c.id ? "Borrando…" : "Borrar"}
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
