@@ -1,43 +1,114 @@
 @import "tailwindcss";
 
+/*
+  Sistema visual del Informe de Rentabilidad
+  - Tinta (#14213d): menú lateral y títulos
+  - Fondo (#f4f6f8): gris frío, deja respirar las tablas
+  - Verde bosque (#1f6f5c): acciones y datos principales (dinero, rentabilidad)
+  - Ámbar tostado (#b54708): solo para alertas de costo
+*/
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --color-tinta: #14213d;
+  --color-tinta-2: #24345a;
+  --color-fondo: #f4f6f8;
+  --color-linea: #e3e7ec;
+  --color-linea-suave: #eef1f4;
+  --color-texto: #1d2433;
+  --color-texto-2: #5a6475;
+  --color-texto-3: #8a93a3;
+  --color-marca: #1f6f5c;
+  --color-marca-hover: #185a4a;
+  --color-marca-suave: #e8f3ef;
+  --color-alerta: #b54708;
+  --color-alerta-suave: #fdf3e7;
+  --color-bien: #17805f;
+}
+
 :root {
-  --surface-1: #fcfcfb;
-  --series-1: #2a78d6;
-  --text-primary: #0b0b0b;
-  --text-secondary: #52514e;
-  --grid: #e7e6e2;
-  --alerta: #c2410c;
+  --series-1: #17805f;
+  --grid: #e9edf1;
+  --text-secondary: #5a6475;
+  --alerta: #b54708;
+}
+
+html {
+  font-feature-settings: "tnum" 1; /* cifras del mismo ancho: columnas alineadas */
 }
 
 body {
-  background: #f6f6f4;
-  color: var(--text-primary);
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-marca);
+  outline-offset: 2px;
 }
 
 .tarjeta {
-  @apply rounded-xl border border-stone-200 bg-white p-4 shadow-sm;
+  @apply rounded-lg border border-linea bg-white p-4;
 }
 
+/* Tablas compactas tipo libro contable */
 .tabla {
-  @apply w-full text-sm;
+  @apply w-full border-separate border-spacing-0 text-[13px];
 }
 .tabla th {
-  @apply sticky top-0 bg-stone-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-stone-500;
+  @apply sticky top-0 z-10 border-b border-linea bg-[#f8fafb] px-3 py-2 text-left text-xs font-medium whitespace-nowrap text-texto-2;
 }
 .tabla td {
-  @apply border-t border-stone-100 px-3 py-1.5;
+  @apply border-b border-linea-suave px-3 py-[7px] whitespace-nowrap;
+}
+.tabla tbody tr:hover td {
+  @apply bg-[#f7faf9];
 }
 .tabla td.num,
 .tabla th.num {
   @apply text-right tabular-nums;
 }
+.tabla tr.grupo td {
+  @apply border-b border-linea bg-[#f3f6f5] font-semibold text-tinta;
+}
+.tabla tr.grupo td:first-child {
+  box-shadow: inset 3px 0 0 var(--color-marca);
+}
+/* Primera columna fija al desplazar horizontalmente */
+.tabla.col-fija th:first-child,
+.tabla.col-fija td:first-child {
+  @apply sticky left-0;
+}
+.tabla.col-fija th:first-child {
+  @apply z-20;
+}
+.tabla.col-fija td:first-child {
+  @apply z-[5] bg-white;
+}
+.tabla.col-fija tr.grupo td:first-child {
+  @apply bg-[#f3f6f5];
+}
 
 .campo {
-  @apply rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200;
+  @apply h-9 rounded-md border border-linea bg-white px-2.5 text-sm text-texto transition-colors focus:border-marca focus:ring-2 focus:ring-marca/15 focus:outline-none;
+}
+select.campo {
+  @apply pr-8;
+}
+.etiqueta {
+  @apply mb-1 block text-xs font-medium text-texto-2;
 }
 .boton {
-  @apply inline-flex items-center justify-center gap-2 rounded-md bg-blue-700 px-3.5 py-1.5 text-sm font-medium text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50;
+  @apply inline-flex h-9 items-center justify-center gap-2 rounded-md bg-marca px-4 text-sm font-medium text-white transition-colors hover:bg-marca-hover disabled:cursor-not-allowed disabled:opacity-50;
 }
 .boton-sec {
-  @apply inline-flex items-center justify-center gap-2 rounded-md border border-stone-300 bg-white px-3.5 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50;
+  @apply inline-flex h-9 items-center justify-center gap-2 rounded-md border border-linea bg-white px-4 text-sm font-medium text-texto transition-colors hover:bg-fondo disabled:opacity-50;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
 }

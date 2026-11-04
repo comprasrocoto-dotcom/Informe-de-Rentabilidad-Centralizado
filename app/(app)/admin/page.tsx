@@ -34,7 +34,7 @@ export default function Admin() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { cargar(); }, []);
 
-  if (perfil.rol !== "admin") return <p className="text-sm text-stone-600">Esta sección es solo para el administrador.</p>;
+  if (perfil.rol !== "admin") return <p className="text-sm text-texto-2">Esta sección es solo para el administrador.</p>;
 
   const avisar = (ok: boolean, texto: string) => setMsg({ ok, texto });
   const marcaNombre = (id: number | null) => marcas.find((m) => m.id === id)?.nombre ?? "—";
@@ -94,12 +94,12 @@ export default function Admin() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Administración</h1>
+      <h1 className="text-[22px] font-semibold tracking-tight text-tinta">Administración</h1>
       {msg && <p className={`rounded-md p-3 text-sm ${msg.ok ? "bg-green-50 text-green-800" : "bg-red-50 text-red-700"}`}>{msg.texto}</p>}
 
       <section className="tarjeta">
         <h2 className="mb-1 font-medium">Correos con acceso</h2>
-        <p className="mb-3 text-sm text-stone-600">
+        <p className="mb-3 text-sm text-texto-2">
           Registra aquí cada correo y marca las marcas que puede ver (puede ser más de una). Luego esa persona entra a la página, elige <b>“Activar cuenta”</b> y crea su propia clave
           (le llega un correo para confirmar). Cada marca solo ve sus datos.
         </p>
@@ -112,7 +112,7 @@ export default function Admin() {
           {nuevo.rol === "marca" && (
             <div className="flex flex-wrap gap-2">
               {marcas.map((m) => (
-                <label key={m.id} className="flex items-center gap-1 rounded-md border border-stone-300 px-2 py-1 text-sm">
+                <label key={m.id} className="flex items-center gap-1 rounded-md border border-linea px-2 py-1 text-sm">
                   <input type="checkbox" checked={nuevo.marcas.includes(m.id)} onChange={() => alternarMarca(m.id)} /> {m.nombre}
                 </label>
               ))}
@@ -128,9 +128,9 @@ export default function Admin() {
                 <td>{a.email}</td>
                 <td>{a.rol === "admin" ? "Administrador" : "Marca"}</td>
                 <td>{a.rol === "admin" ? "Todas" : a.marcas.map(marcaNombre).sort().join(", ") || "—"}</td>
-                <td>{activos.has(a.email) ? <span className="text-green-700">Activa</span> : <span className="text-stone-500">Pendiente de activar</span>}</td>
+                <td>{activos.has(a.email) ? <span className="text-green-700">Activa</span> : <span className="text-texto-2">Pendiente de activar</span>}</td>
                 <td className="whitespace-nowrap text-right">
-                  <button className="mr-3 text-xs text-blue-700 hover:underline" onClick={() => setNuevo({ email: a.email, rol: a.rol, marcas: a.marcas })}>Editar</button>
+                  <button className="mr-3 text-xs text-marca hover:underline" onClick={() => setNuevo({ email: a.email, rol: a.rol, marcas: a.marcas })}>Editar</button>
                   <button className="text-xs text-red-700 hover:underline" onClick={() => quitarAcceso(a.email)}>Quitar</button>
                 </td>
               </tr>
@@ -141,7 +141,7 @@ export default function Admin() {
 
       <section className="tarjeta">
         <h2 className="mb-1 font-medium">Marcas y sedes</h2>
-        <p className="mb-3 text-sm text-stone-600">
+        <p className="mb-3 text-sm text-texto-2">
           Los Excel a veces nombran la misma sede de formas distintas (ej. “ROCOTTO LAURELES” y “ROCOTO LAURELES”). Aquí puedes unir un nombre con su sede real;
           los datos ya cargados con ese nombre se mueven también. Los <b>centros de producción</b> no suman al costo de las sedes porque su costo llega como traslados.
         </p>
@@ -153,7 +153,7 @@ export default function Admin() {
           {marcas.map((m) => {
             const sedesM = sedes.filter((s) => s.marca_id === m.id);
             return (
-              <div key={m.id} className="rounded-lg border border-stone-200 p-3">
+              <div key={m.id} className="rounded-lg border border-linea p-3">
                 <h3 className="mb-2 text-sm font-semibold">{m.nombre}</h3>
                 {sedesM.map((s) => (
                   <div key={s.id} className="mb-2">
@@ -165,7 +165,7 @@ export default function Admin() {
                       </select>
                     </div>
                     {alias.filter((a) => a.sede_id === s.id).map((a) => (
-                      <div key={a.alias} className="ml-3 flex items-center justify-between gap-2 text-xs text-stone-500">
+                      <div key={a.alias} className="ml-3 flex items-center justify-between gap-2 text-xs text-texto-2">
                         <span>“{a.alias}”</span>
                         <select className="campo !py-0 !text-xs" value={a.sede_id} onChange={(e) => reasignar(a, Number(e.target.value))}>
                           {sedesM.map((d) => <option key={d.id} value={d.id}>{d.nombre}</option>)}
@@ -174,7 +174,7 @@ export default function Admin() {
                     ))}
                   </div>
                 ))}
-                {sedesM.length === 0 && <p className="text-xs text-stone-500">Sin sedes. Se crean solas al cargar el primer archivo.</p>}
+                {sedesM.length === 0 && <p className="text-xs text-texto-2">Sin sedes. Se crean solas al cargar el primer archivo.</p>}
               </div>
             );
           })}

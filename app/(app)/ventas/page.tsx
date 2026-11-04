@@ -1,6 +1,7 @@
 "use client";
 
 import { BarraFiltros } from "@/components/BarraFiltros";
+import { Encabezado } from "@/components/Encabezado";
 import { TablaDimension } from "@/components/TablaDimension";
 
 const COLS = [
@@ -12,7 +13,7 @@ const COLS = [
 export default function Ventas() {
   return (
     <div>
-      <h1 className="mb-4 text-xl font-semibold">Ventas</h1>
+      <Encabezado titulo="Ventas" descripcion="Lo que se vendió en el período, sin impuestos. Incluye descuentos y todos los centros de costo." />
       <BarraFiltros />
       <div className="grid gap-4 lg:grid-cols-2">
         <TablaDimension rpc="ventas_por" dim="familia" titulo="Por familia" columnas={COLS} columnaPrincipal="base" />

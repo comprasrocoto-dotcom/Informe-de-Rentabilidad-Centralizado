@@ -1,6 +1,7 @@
 "use client";
 
 import { BarraFiltros } from "@/components/BarraFiltros";
+import { Encabezado } from "@/components/Encabezado";
 import { TablaDimension } from "@/components/TablaDimension";
 
 const COLS = [
@@ -15,7 +16,7 @@ const COLS_ART = [
 export default function Compras() {
   return (
     <div>
-      <h1 className="mb-4 text-xl font-semibold">Compras</h1>
+      <Encabezado titulo="Compras" descripcion="Facturas de compra del período, con impuestos, por proveedor, familia y artículo." />
       <BarraFiltros />
       <div className="grid gap-4 lg:grid-cols-2">
         <TablaDimension rpc="compras_por" dim="proveedor" titulo="Por proveedor" columnas={COLS} columnaPrincipal="total" limite={100} />

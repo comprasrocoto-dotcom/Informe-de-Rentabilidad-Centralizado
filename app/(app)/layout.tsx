@@ -25,7 +25,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
       <main className="flex min-h-screen items-center justify-center p-4">
         <div className="tarjeta max-w-md text-sm">
           <h1 className="mb-2 text-lg font-semibold">Tu cuenta no tiene una marca asignada</h1>
-          <p className="text-stone-600">
+          <p className="text-texto-2">
             Ingresaste como <b>{auth.user.email}</b>, pero este correo no está asociado a ninguna marca.
             Pídele al administrador que lo registre.
           </p>
@@ -40,7 +40,9 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
   return (
     <ProveedorApp perfil={perfil}>
       <Menu />
-      <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
+      <main className="min-w-0 px-4 py-6 lg:ml-60 lg:px-8 lg:py-8">
+        <div className="mx-auto max-w-[1440px]">{children}</div>
+      </main>
     </ProveedorApp>
   );
 }

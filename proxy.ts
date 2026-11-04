@@ -24,7 +24,7 @@ export async function proxy(request: NextRequest) {
 
   const { data } = await supabase.auth.getUser();
   const ruta = request.nextUrl.pathname;
-  const publica = ruta.startsWith("/login") || ruta.startsWith("/auth") || ruta.startsWith("/prueba-lector");
+  const publica = ruta.startsWith("/login") || ruta.startsWith("/auth");
 
   if (!data.user && !publica) {
     const url = request.nextUrl.clone();

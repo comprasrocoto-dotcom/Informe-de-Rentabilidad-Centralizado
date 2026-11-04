@@ -200,8 +200,8 @@ export default function Cargar() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-semibold">Cargar datos</h1>
-        <p className="mt-1 max-w-3xl text-sm text-stone-600">
+        <h1 className="text-[22px] font-semibold tracking-tight text-tinta">Cargar datos</h1>
+        <p className="mt-1 max-w-3xl text-sm text-texto-2">
           Elige qué información vas a subir y luego el archivo: puede ser <b>archivo plano</b> (.csv o .txt, separado por punto y coma, coma o tabulación) o Excel.
           Al guardar se <b>reemplazan</b> los datos de las mismas sedes y fechas que trae el archivo, así que puedes volver a subir un mes para corregirlo sin duplicar.
         </p>
@@ -210,25 +210,25 @@ export default function Cargar() {
       <div className="tarjeta space-y-4">
         <div className="flex flex-wrap items-end gap-4">
           {variasMarcas ? (
-            <label className="text-xs text-stone-500"><span className="mb-1 block">1. Marca</span>
+            <label><span className="etiqueta">1. Marca</span>
               <select className="campo" value={marcaId ?? ""} disabled={!!ocupado} onChange={(e) => { setMarcaId(e.target.value ? Number(e.target.value) : null); setLecturas({}); setAvances({}); }}>
                 <option value="">Elige una marca…</option>
                 {marcas.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
               </select>
             </label>
           ) : (
-            <div className="text-sm"><span className="text-xs text-stone-500">1. Marca</span><div className="font-medium">{marcaNombre(perfil.marcas[0])}</div></div>
+            <div className="text-sm"><span className="text-xs text-texto-2">1. Marca</span><div className="font-medium">{marcaNombre(perfil.marcas[0])}</div></div>
           )}
         </div>
 
         <div>
-          <div className="mb-1 text-xs text-stone-500">2. ¿Qué vas a subir?</div>
+          <div className="mb-1 text-xs text-texto-2">2. ¿Qué vas a subir?</div>
           <div className="flex flex-wrap gap-2">
             {[...ORDEN_TIPOS, "libro" as const].map((t) => (
               <button
                 key={t} type="button" disabled={!!ocupado}
                 onClick={() => { setEleccion(t); setArchivo(null); setHojas([]); setLecturas({}); setAvances({}); setInputKey((k) => k + 1); }}
-                className={`rounded-lg border px-3 py-2 text-sm ${eleccion === t ? "border-blue-600 bg-blue-50 font-medium text-blue-800" : "border-stone-300 bg-white hover:bg-stone-50"}`}
+                className={`rounded-lg border px-3 py-2 text-sm ${eleccion === t ? "border-marca bg-marca-suave font-medium text-marca" : "border-linea bg-white hover:bg-fondo"}`}
               >
                 {t === "libro" ? "Libro completo (varias hojas)" : NOMBRE_TIPO[t]}
               </button>
@@ -237,17 +237,17 @@ export default function Cargar() {
         </div>
 
         {eleccion && eleccion !== "libro" && (
-          <div className="rounded-md bg-stone-50 p-3 text-xs text-stone-600">
+          <div className="rounded-md bg-fondo p-3 text-xs text-texto-2">
             <b>Columnas necesarias para {NOMBRE_TIPO[eleccion]}:</b> {GUIA_COLUMNAS[eleccion].obligatorias.join(", ")}.
-            <span className="text-stone-500"> Opcionales: {GUIA_COLUMNAS[eleccion].opcionales.join(", ")}.</span>{" "}
+            <span className="text-texto-2"> Opcionales: {GUIA_COLUMNAS[eleccion].opcionales.join(", ")}.</span>{" "}
             Los nombres pueden variar un poco (con o sin tildes).{" "}
-            <button type="button" className="text-blue-700 underline" onClick={() => descargarPlantilla(eleccion)}>Descargar plantilla</button>
+            <button type="button" className="text-marca underline" onClick={() => descargarPlantilla(eleccion)}>Descargar plantilla</button>
           </div>
         )}
 
         {eleccion && (
           <div className="flex flex-wrap items-end gap-4">
-            <label className="text-xs text-stone-500"><span className="mb-1 block">3. Archivo {eleccion === "libro" ? "Excel" : "plano (.csv / .txt) o Excel"}</span>
+            <label><span className="etiqueta">3. Archivo {eleccion === "libro" ? "Excel" : "plano (.csv / .txt) o Excel"}</span>
               <input
                 key={inputKey} type="file" className="text-sm" disabled={!!ocupado}
                 accept={eleccion === "libro" ? ".xlsx,.xlsm,.xls" : ".csv,.txt,.tsv,.xlsx,.xlsm,.xls"}
@@ -255,8 +255,8 @@ export default function Cargar() {
               />
             </label>
             {(eleccion === "inventarios" || eleccion === "libro") && (
-              <label className="text-xs text-stone-500" title="Algunos archivos traen la fecha del inventario como ###### . Esa fecha se usa solo para esas filas.">
-                <span className="mb-1 block">Fecha de corte para filas sin fecha (opcional)</span>
+              <label title="Algunos archivos traen la fecha del inventario como ###### . Esa fecha se usa solo para esas filas.">
+                <span className="etiqueta">Fecha de corte para filas sin fecha (opcional)</span>
                 <input type="date" className="campo" value={fechaRespaldo} onChange={(e) => setFechaRespaldo(e.target.value)} />
               </label>
             )}
@@ -264,16 +264,16 @@ export default function Cargar() {
         )}
 
         {hojas.length > 0 && eleccion && (
-          <div className="border-t border-stone-100 pt-3">
+          <div className="border-t border-linea-suave pt-3">
             {separador && (
-              <p className="mb-2 text-xs text-stone-500">
+              <p className="mb-2 text-xs text-texto-2">
                 Archivo plano · separador detectado: <b>{separador === "\t" ? "tabulación" : separador === ";" ? "punto y coma (;)" : separador === "," ? "coma (,)" : separador}</b>
               </p>
             )}
             {eleccion === "libro" ? (
               <div className="flex flex-wrap gap-3">
                 {hojas.map((h) => (
-                  <label key={h.nombre} className={`flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm ${h.tipo ? "border-stone-300" : "border-dashed border-stone-200 text-stone-400"}`}>
+                  <label key={h.nombre} className={`flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm ${h.tipo ? "border-linea" : "border-dashed border-linea text-texto-3"}`}>
                     <input
                       type="checkbox" disabled={!h.tipo || !!ocupado} checked={elegidas.has(h.nombre)}
                       onChange={(e) => {
@@ -282,12 +282,12 @@ export default function Cargar() {
                         setElegidas(s);
                       }}
                     />
-                    {h.nombre} <span className="text-xs text-stone-500">{h.tipo ? `→ ${NOMBRE_TIPO[h.tipo]}` : "(no se reconoce)"}</span>
+                    {h.nombre} <span className="text-xs text-texto-2">{h.tipo ? `→ ${NOMBRE_TIPO[h.tipo]}` : "(no se reconoce)"}</span>
                   </label>
                 ))}
               </div>
             ) : hojas.length > 1 ? (
-              <label className="text-xs text-stone-500"><span className="mb-1 block">El archivo tiene varias hojas: ¿cuál es la de {NOMBRE_TIPO[eleccion]}?</span>
+              <label><span className="etiqueta">El archivo tiene varias hojas: ¿cuál es la de {NOMBRE_TIPO[eleccion]}?</span>
                 <select className="campo" value={[...elegidas][0] ?? ""} onChange={(e) => setElegidas(new Set([e.target.value]))}>
                   {hojas.map((h) => <option key={h.nombre} value={h.nombre}>{h.nombre}</option>)}
                 </select>
@@ -295,13 +295,13 @@ export default function Cargar() {
             ) : null}
             <div className="mt-3">
               <button className="boton" disabled={!!ocupado || elegidas.size === 0 || !marcaId} onClick={leer}>4. Leer y revisar</button>
-              {!marcaId && <span className="ml-3 text-xs text-stone-500">Elige primero la marca.</span>}
+              {!marcaId && <span className="ml-3 text-xs text-texto-2">Elige primero la marca.</span>}
             </div>
           </div>
         )}
       </div>
 
-      {ocupado && <p className="rounded-md bg-blue-50 p-3 text-sm text-blue-800">{ocupado}</p>}
+      {ocupado && <p className="rounded-md bg-marca-suave p-3 text-sm text-marca">{ocupado}</p>}
       {error && <p className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
 
       {Object.keys(lecturas).length > 0 && (
@@ -320,29 +320,29 @@ export default function Cargar() {
                     <td className="font-medium">{hoja}</td>
                     <td>{NOMBRE_TIPO[r.tipo]}</td>
                     <td className="num">{fmtNum(r.filasLeidas)}</td>
-                    <td className="num">{fmtNum(r.filas.length)}{r.tipo === "ventas" && <div className="text-[10px] text-stone-500">agrupadas por día</div>}</td>
+                    <td className="num">{fmtNum(r.filas.length)}{r.tipo === "ventas" && <div className="text-[10px] text-texto-2">agrupadas por día</div>}</td>
                     <td className="whitespace-nowrap">{r.desde ? `${r.desde} a ${r.hasta}` : r.tipo === "rentabilidad" ? "Reemplaza la carta" : "—"}</td>
                     <td>
                       {(l.sedes ?? []).map((s) => (
                         <div key={s.nombreArchivo} className="whitespace-nowrap text-xs">
                           {s.nombreArchivo}
-                          {s.sedeId ? (s.sedeNombre !== s.nombreArchivo ? <span className="text-stone-500"> → {s.sedeNombre}</span> : null)
-                            : <span className="ml-1 rounded bg-amber-100 px-1 text-amber-800">sede nueva</span>}
+                          {s.sedeId ? (s.sedeNombre !== s.nombreArchivo ? <span className="text-texto-2"> → {s.sedeNombre}</span> : null)
+                            : <span className="ml-1 rounded bg-alerta-suave px-1 text-alerta">sede nueva</span>}
                         </div>
                       ))}
                     </td>
                     <td className="text-xs">
-                      {r.filas.length === 0 && <div className="text-stone-500">Hoja vacía, no se guarda</div>}
-                      {Object.entries(r.motivosOmision).map(([m, n]) => <div key={m} className="text-amber-800">{fmtNum(n)} filas omitidas: {m}</div>)}
+                      {r.filas.length === 0 && <div className="text-texto-2">Hoja vacía, no se guarda</div>}
+                      {Object.entries(r.motivosOmision).map(([m, n]) => <div key={m} className="text-alerta">{fmtNum(n)} filas omitidas: {m}</div>)}
                       {r.tipo === "inventarios" && r.motivosOmision["Fecha vacía, futura o no válida"] && !fechaRespaldo && (
-                        <div className="text-stone-500">Pon una fecha de corte arriba y vuelve a leer.</div>
+                        <div className="text-texto-2">Pon una fecha de corte arriba y vuelve a leer.</div>
                       )}
                     </td>
                     <td className="min-w-48 text-xs">
                       {av ? (
                         <>
-                          <div className={av.estado === "error" ? "text-red-700" : av.estado === "ok" ? "text-green-700" : "text-stone-600"}>{av.estado === "ok" ? "✓ " : ""}{av.texto}</div>
-                          <div className="mt-1 h-1.5 overflow-hidden rounded bg-stone-100"><div className="h-full bg-[var(--series-1)] transition-all" style={{ width: `${av.fraccion * 100}%` }} /></div>
+                          <div className={av.estado === "error" ? "text-red-700" : av.estado === "ok" ? "text-green-700" : "text-texto-2"}>{av.estado === "ok" ? "✓ " : ""}{av.texto}</div>
+                          <div className="mt-1 h-1.5 overflow-hidden rounded bg-linea-suave"><div className="h-full bg-[var(--series-1)] transition-all" style={{ width: `${av.fraccion * 100}%` }} /></div>
                         </>
                       ) : "Sin guardar"}
                     </td>
@@ -351,7 +351,7 @@ export default function Cargar() {
               })}
             </tbody>
           </table>
-          <div className="border-t border-stone-100 p-3">
+          <div className="border-t border-linea-suave p-3">
             <button className="boton" disabled={!!ocupado || !hayLecturas} onClick={guardar}>5. Guardar en la base de datos</button>
           </div>
         </div>
@@ -360,14 +360,14 @@ export default function Cargar() {
       <div className="tarjeta overflow-x-auto !p-0">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-3">
           <h2 className="text-sm font-medium">Historial de cargas</h2>
-          <label className="flex items-center gap-2 text-xs text-stone-500">Mes
+          <label className="flex items-center gap-2 text-xs text-texto-2">Mes
             <select className="campo !py-1" value={mesHistorial} onChange={(e) => setMesHistorial(e.target.value)}>
               <option value="">Todos</option>
               {mesesHistorial.map((m) => <option key={m} value={m}>{nombreMes(m)}</option>)}
             </select>
           </label>
         </div>
-        <p className="px-4 text-xs text-stone-500">
+        <p className="px-4 text-xs text-texto-2">
           Si subiste un archivo equivocado, pulsa <b>Borrar</b> en esa fila: se eliminan solo los datos que entraron con esa carga.
           Una carga marcada como “Reemplazada” ya no tiene datos porque otra posterior la sustituyó.
         </p>
@@ -380,7 +380,7 @@ export default function Cargar() {
             </tr>
           </thead>
           <tbody>
-            {historialFiltrado.length === 0 ? <tr><td colSpan={8} className="text-stone-500">{historial.length ? "No hay cargas de ese mes." : "Aún no hay cargas."}</td></tr> : historialFiltrado.map((c) => {
+            {historialFiltrado.length === 0 ? <tr><td colSpan={8} className="text-texto-2">{historial.length ? "No hay cargas de ese mes." : "Aún no hay cargas."}</td></tr> : historialFiltrado.map((c) => {
               const n = vigentes[c.id];
               return (
                 <tr key={c.id}>
@@ -389,9 +389,9 @@ export default function Cargar() {
                   <td>{NOMBRE_TIPO[c.tipo as TipoHoja] ?? c.tipo}</td>
                   <td className="max-w-56 truncate" title={`${c.archivo} · hoja ${c.hoja}`}>{c.archivo}</td>
                   <td className="whitespace-nowrap">{c.desde ? `${c.desde} a ${c.hasta}` : "—"}</td>
-                  <td className="num">{fmtNum(c.filas_guardadas)}{c.filas_guardadas < c.filas_leidas && <span className="ml-1 text-amber-700" title="La carga no terminó">⚠</span>}</td>
+                  <td className="num">{fmtNum(c.filas_guardadas)}{c.filas_guardadas < c.filas_leidas && <span className="ml-1 text-alerta" title="La carga no terminó">⚠</span>}</td>
                   <td className="whitespace-nowrap text-xs">
-                    {n === undefined ? "…" : n > 0 ? <span className="text-green-700">Vigente</span> : <span className="text-stone-500">Reemplazada</span>}
+                    {n === undefined ? "…" : n > 0 ? <span className="text-green-700">Vigente</span> : <span className="text-texto-2">Reemplazada</span>}
                   </td>
                   <td className="text-right">
                     <button

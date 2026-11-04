@@ -47,12 +47,12 @@ export function BarraFiltros({ sinFechas = false, sinSede = false }: { sinFechas
     "personalizado";
 
   return (
-    <div className="mb-4 flex flex-wrap items-end gap-3">
+    <div className="sticky top-[52px] z-20 -mx-4 mb-5 flex flex-wrap items-end gap-3 border-y border-linea bg-fondo/95 px-4 py-3 backdrop-blur lg:top-0 lg:-mx-8 lg:px-8">
       {variasMarcas && (
-        <label className="text-xs text-stone-500">
-          <span className="mb-1 block">Marca</span>
+        <label>
+          <span className="etiqueta">Marca</span>
           <select
-            className="campo"
+            className="campo w-48"
             value={filtros.marcaId ?? ""}
             onChange={(e) => setFiltros({ marcaId: e.target.value ? Number(e.target.value) : null })}
           >
@@ -64,10 +64,10 @@ export function BarraFiltros({ sinFechas = false, sinSede = false }: { sinFechas
         </label>
       )}
       {!sinSede && (
-        <label className="text-xs text-stone-500">
-          <span className="mb-1 block">Sede</span>
+        <label>
+          <span className="etiqueta">Sede</span>
           <select
-            className="campo"
+            className="campo w-64"
             value={filtros.sedeId ?? ""}
             onChange={(e) => setFiltros({ sedeId: e.target.value ? Number(e.target.value) : null })}
           >
@@ -82,23 +82,23 @@ export function BarraFiltros({ sinFechas = false, sinSede = false }: { sinFechas
       )}
       {!sinFechas && (
         <>
-          <label className="text-xs text-stone-500">
-            <span className="mb-1 block">Mes</span>
-            <select className="campo" value={valorSelect} onChange={(e) => elegirMes(e.target.value)}>
+          <label>
+            <span className="etiqueta">Mes</span>
+            <select className="campo w-56" value={valorSelect} onChange={(e) => elegirMes(e.target.value)}>
               <option value="personalizado" disabled>Rango personalizado</option>
-              {todo && <option value="todo">Todos los meses con datos</option>}
-              {meses.length >= 3 && <option value="trimestre">Últimos 3 meses con datos</option>}
+              {todo && <option value="todo">Todos los meses</option>}
+              {meses.length >= 3 && <option value="trimestre">Últimos 3 meses</option>}
               {meses.map((m) => (
                 <option key={m} value={m}>{nombreMes(m)}</option>
               ))}
             </select>
           </label>
-          <label className="text-xs text-stone-500">
-            <span className="mb-1 block">Desde</span>
+          <label>
+            <span className="etiqueta">Desde</span>
             <input type="date" className="campo" value={filtros.desde} onChange={(e) => setFiltros({ desde: e.target.value })} />
           </label>
-          <label className="text-xs text-stone-500">
-            <span className="mb-1 block">Hasta</span>
+          <label>
+            <span className="etiqueta">Hasta</span>
             <input type="date" className="campo" value={filtros.hasta} onChange={(e) => setFiltros({ hasta: e.target.value })} />
           </label>
         </>

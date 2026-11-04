@@ -69,51 +69,76 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <h1 className="mb-1 text-2xl font-semibold">Informe de Rentabilidad</h1>
-        <p className="mb-6 text-sm text-stone-500">Ingresa con el correo de tu marca.</p>
-
-        <div className="mb-4 flex gap-1 rounded-lg bg-stone-200/60 p-1 text-sm">
-          {(["ingresar", "crear", "olvide"] as Modo[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => { setModo(m); setError(null); setAviso(null); }}
-              className={`flex-1 rounded-md px-2 py-1.5 ${modo === m ? "bg-white font-medium shadow-sm" : "text-stone-600"}`}
-            >
-              {m === "ingresar" ? "Ingresar" : m === "crear" ? "Activar cuenta" : "Olvidé mi clave"}
-            </button>
-          ))}
+    <main className="grid min-h-screen lg:grid-cols-[1fr_minmax(420px,520px)]">
+      <section className="relative hidden flex-col justify-between overflow-hidden bg-tinta p-12 text-white lg:flex">
+        <div className="text-sm font-medium text-white/70">Informe de Rentabilidad</div>
+        <div className="max-w-md">
+          <p className="text-[34px] leading-[1.15] font-semibold tracking-tight">
+            Cuánto cuesta lo que vendes, sede por sede y mes a mes.
+          </p>
+          <p className="mt-4 text-[15px] leading-relaxed text-white/70">
+            Ventas, compras, inventarios y traslados de cada marca en un solo lugar, con el costo de venta de Cocina y Bar calculado igual para todas.
+          </p>
         </div>
+        <svg className="pointer-events-none absolute -right-24 -bottom-24 h-[420px] w-[420px] text-white/[0.06]" viewBox="0 0 200 200" aria-hidden>
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <rect key={i} x={20 + i * 28} y={170 - (i + 1) * 24} width="18" height={(i + 1) * 24} rx="3" fill="currentColor" />
+          ))}
+        </svg>
+        <div className="text-xs text-white/50">Cada marca entra con su correo y solo ve su información.</div>
+      </section>
 
-        <form onSubmit={enviar} className="tarjeta space-y-3">
-          {modo === "crear" && (
-            <p className="text-xs text-stone-500">
-              Solo funciona con correos que el administrador ya registró para una marca. Elige aquí tu clave.
-            </p>
-          )}
-          <label className="block text-sm">
-            <span className="mb-1 block text-stone-600">Correo</span>
-            <input className="campo w-full" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </label>
-          {modo !== "olvide" && (
-            <label className="block text-sm">
-              <span className="mb-1 block text-stone-600">Clave</span>
-              <input
-                className="campo w-full" type="password" required minLength={6}
-                autoComplete={modo === "crear" ? "new-password" : "current-password"}
-                value={clave} onChange={(e) => setClave(e.target.value)}
-              />
+      <section className="flex items-center justify-center bg-white p-6 sm:p-10">
+        <div className="w-full max-w-sm">
+          <h1 className="text-2xl font-semibold tracking-tight text-tinta lg:hidden">Informe de Rentabilidad</h1>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-tinta max-lg:hidden">
+            {modo === "ingresar" ? "Ingresa a tu cuenta" : modo === "crear" ? "Activa tu cuenta" : "Recupera tu clave"}
+          </h2>
+          <p className="mt-1 mb-6 text-sm text-texto-2">
+            {modo === "ingresar" ? "Usa el correo registrado para tu marca." : modo === "crear" ? "Solo para correos que el administrador ya registró. Aquí eliges tu clave." : "Te enviaremos un enlace para crear una clave nueva."}
+          </p>
+
+          <form onSubmit={enviar} className="space-y-4">
+            <label className="block">
+              <span className="etiqueta">Correo</span>
+              <input className="campo w-full" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </label>
-          )}
-          {error && <p className="rounded-md bg-red-50 p-2 text-sm text-red-700">{error}</p>}
-          {aviso && <p className="rounded-md bg-green-50 p-2 text-sm text-green-800">{aviso}</p>}
-          <button className="boton w-full" disabled={cargando}>
-            {cargando ? "Un momento…" : modo === "ingresar" ? "Ingresar" : modo === "crear" ? "Crear mi clave" : "Enviar enlace"}
-          </button>
-        </form>
-      </div>
+            {modo !== "olvide" && (
+              <label className="block">
+                <span className="etiqueta">Clave</span>
+                <input
+                  className="campo w-full" type="password" required minLength={6}
+                  autoComplete={modo === "crear" ? "new-password" : "current-password"}
+                  value={clave} onChange={(e) => setClave(e.target.value)}
+                />
+              </label>
+            )}
+            {error && <p className="rounded-md bg-red-50 p-2.5 text-sm text-red-700">{error}</p>}
+            {aviso && <p className="rounded-md bg-marca-suave p-2.5 text-sm text-marca">{aviso}</p>}
+            <button className="boton h-10 w-full" disabled={cargando}>
+              {cargando ? "Un momento…" : modo === "ingresar" ? "Ingresar" : modo === "crear" ? "Crear mi clave" : "Enviar enlace"}
+            </button>
+          </form>
+
+          <div className="mt-6 space-y-2 border-t border-linea pt-5 text-sm text-texto-2">
+            {modo !== "ingresar" && (
+              <button type="button" className="block font-medium text-marca hover:underline" onClick={() => { setModo("ingresar"); setError(null); setAviso(null); }}>
+                Ya tengo clave: ingresar
+              </button>
+            )}
+            {modo !== "crear" && (
+              <button type="button" className="block font-medium text-marca hover:underline" onClick={() => { setModo("crear"); setError(null); setAviso(null); }}>
+                Primera vez: activar mi cuenta
+              </button>
+            )}
+            {modo !== "olvide" && (
+              <button type="button" className="block font-medium text-marca hover:underline" onClick={() => { setModo("olvide"); setError(null); setAviso(null); }}>
+                Olvidé mi clave
+              </button>
+            )}
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

@@ -92,3 +92,16 @@ En Resumen, Ventas y Compras hay un selector **Mes** que muestra solo los meses 
 marca elegida. Al escoger un mes, Desde y Hasta se ajustan solos a ese mes. También tiene “Todos los meses
 con datos” y “Últimos 3 meses con datos”. Desde/Hasta siguen disponibles para rangos personalizados.
 El Historial de cargas también se puede filtrar por mes.
+
+## 4 de noviembre de 2026 — Nuevo diseño visual
+
+- **Colores:** menú lateral azul tinta, fondo gris claro, verde bosque para acciones y gráficos (asociado a
+  rentabilidad) y ámbar solo para alertas de costo alto.
+- **Letra:** IBM Plex Sans, con números de ancho fijo para que las cifras queden alineadas en las columnas.
+- **Menú lateral fijo** con las secciones y las marcas a las que tiene acceso el usuario.
+- **Resumen:** el % de costo de venta del período es el dato principal, con la variación en puntos frente al
+  mes anterior. Gráfico de % con eje en pasos redondos desde 0%.
+- **Tablas más compactas:** cifras sin el signo $ (el encabezado aclara que son pesos), encabezado y
+  primera columna fijos al desplazarse, filas de mes resaltadas.
+- **Pantalla de ingreso** renovada.
+- Se quitó una ruta de prueba que había quedado en el código.
