@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/Contexto";
 import { BarraFiltros } from "@/components/BarraFiltros";
+import { PestanasCompras } from "@/components/PestanasCompras";
 import { Encabezado } from "@/components/Encabezado";
 import { GraficoBarras } from "@/components/Graficos";
 import { Tarjeta } from "@/components/Indicadores";
@@ -49,6 +50,7 @@ export default function Compras() {
         titulo="Compras"
         descripcion={<>Solo entran las compras con centro de costo <b>{pcc ?? "Cocina o Bar"}</b>: son las que alimentan el juego de inventarios. Lo demás (aseo, empaque, utensilios…) se muestra aparte como excluido.</>}
       />
+      <PestanasCompras />
       <BarraFiltros />
       <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-5">
         <Tarjeta titulo={`Compras ${pcc ?? "Cocina + Bar"}`} valor={fmtM(total)} exacto={fmtPesos(total)} nota="Base del juego de inventarios" />

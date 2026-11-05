@@ -238,3 +238,17 @@ Bar y el total. Responde: "con lo que vendí este mes, ¿compré más de lo que 
 - **Variación inventario** (final − inicial del mes) para ver si lo comprado de más quedó guardado o se consumió.
 - Tabla **por sede** para el mes elegido (cada sede contra sí misma), ordenada por quién compró más de lo esperado.
 - Se trae un mes extra antes de "Desde" para poder comparar el primer mes del filtro (`useCostos(mesesAntes)`).
+
+## 5 de noviembre de 2026 — Informe de compras de Cocina y Bar
+
+El módulo Compras ahora tiene pestañas: **General** (lo que ya existía) y **Cocina y Bar** (`/compras/cocina-bar`).
+
+- Función `compras_cocina_bar(p_dim, p_marca, p_sede, p_desde, p_hasta)`: compras de Cocina y Bar agrupadas por
+  proveedor, familia, artículo, sede o mes, separadas por mes y centro de costo. Devuelve JSON (sin tope de 1000
+  filas) y respeta el acceso por marca.
+- Tarjetas: compras de Cocina, de Bar, total, y el último mes de cada uno con su variación (en rojo si subió más de 5 %).
+- Gráfico de barras Cocina vs Bar por mes y tabla mes a mes con variaciones y % de Cocina.
+- Tabla por proveedor / familia / artículo / sede en dos vistas: **Cocina vs Bar** (columnas lado a lado, mes
+  anterior, último mes y variación; en artículos también unidades, precio promedio y variación de precio) y
+  **Mes a mes** (una columna por mes, filtrable por Cocina, Bar o ambos). Con buscador y descarga a Excel/PDF.
+- Verificado contra la base: octubre Cocina $103.600.048 y Bar $71.197.236 (Casa de Nadie).
