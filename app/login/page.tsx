@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { LogoCompleto } from "@/components/Logo";
 import { useRouter } from "next/navigation";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 
@@ -71,7 +72,7 @@ export default function LoginPage() {
   return (
     <main className="grid min-h-screen lg:grid-cols-[1fr_minmax(420px,520px)]">
       <section className="relative hidden flex-col justify-between overflow-hidden bg-carbon p-12 text-white lg:flex">
-        <div className="flex items-center gap-3 text-sm font-medium text-white/80"><span className="flex h-9 w-10 items-center justify-center rounded-sm bg-acento text-[13px] font-bold text-white">IR</span>Informe de Rentabilidad</div>
+        <div><LogoCompleto oscuro size={44} /></div>
         <div className="max-w-md">
           <p className="text-[34px] leading-[1.15] font-semibold tracking-tight">
             Cuánto cuesta lo que vendes, sede por sede y mes a mes.
@@ -90,7 +91,7 @@ export default function LoginPage() {
 
       <section className="flex items-center justify-center bg-white p-6 sm:p-10">
         <div className="w-full max-w-sm">
-          <h1 className="text-2xl font-semibold tracking-tight text-tinta lg:hidden">Informe de Rentabilidad</h1>
+          <div className="mb-6 lg:hidden"><LogoCompleto /></div>
           <h2 className="mt-1 text-xl font-semibold tracking-tight text-tinta max-lg:hidden">
             {modo === "ingresar" ? "Ingresa a tu cuenta" : modo === "crear" ? "Activa tu cuenta" : "Recupera tu clave"}
           </h2>

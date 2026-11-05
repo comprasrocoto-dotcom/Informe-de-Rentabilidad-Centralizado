@@ -189,3 +189,15 @@ lógica de la web "Cierre de mes CP". Marcas: **San Agustín** (almacén CENTRO 
 - **Otras pestañas:** Resumen global (con cobertura de datos por mes), Compras, Fabricación, Traslados y Top 10.
 - Verificado contra el Excel de cierre: compras $112.103.702, fabricación $1.049.690.107, traslados $162.881.141,
   inventario $143.619.506.
+
+## 4 de noviembre de 2026 — Logo y descargas
+
+- **Logo:** cuadro azul del ERP (#1976d2) con tres barras que suben y una línea de tendencia que termina en el punto
+  rojo de acento. Está en el riel, en el login, como ícono de la pestaña del navegador y en el encabezado del PDF.
+- **Botón Descargar** (barra superior, en todas las páginas):
+  - **Excel:** una hoja "Informe" con la página, los filtros y la fecha, y una hoja por cada tabla visible, con los
+    pesos, porcentajes y kilos como números (se pueden sumar y filtrar en Excel).
+  - **PDF:** abre la impresión del navegador con un diseño limpio (sin menú, con logo, usuario y fecha arriba, tablas
+    completas sin barras de desplazamiento, hoja horizontal). Se elige "Guardar como PDF".
+  - En tablas con "Mostrar más" el Excel lleva lo que esté desplegado; Compras del CP tiene además su propio botón
+    con todas las líneas.

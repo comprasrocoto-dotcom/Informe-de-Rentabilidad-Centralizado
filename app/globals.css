@@ -117,3 +117,21 @@ select.campo {
     transition: none !important;
   }
 }
+
+/* ---------- Impresión / PDF ---------- */
+.solo-imprimir { display: none; }
+@media print {
+  @page { size: A4 landscape; margin: 10mm; }
+  html, body { background: #fff !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .no-imprimir, aside, header.fixed, input[type="search"], input[type="file"], .boton-sec { display: none !important; }
+  .solo-imprimir { display: block !important; }
+  main { margin: 0 !important; padding: 0 !important; }
+  main > div { max-width: none !important; }
+  .sticky { position: static !important; }
+  [class*="max-h-"], .overflow-auto, .overflow-x-auto, .overflow-y-auto { max-height: none !important; overflow: visible !important; }
+  table { page-break-inside: auto; }
+  tr, .tarjeta { page-break-inside: avoid; }
+  thead { display: table-header-group; }
+  section, .tarjeta { box-shadow: none !important; }
+}

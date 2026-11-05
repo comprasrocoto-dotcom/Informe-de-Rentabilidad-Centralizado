@@ -5,6 +5,8 @@ import { PESTANAS_CP } from "@/components/cp/NavCP";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "./Contexto";
+import { Logo } from "./Logo";
+import { Descargar } from "./Descargar";
 
 // Menú en riel de íconos (como el ERP): ocupa 56 px y muestra el nombre al pasar el mouse.
 export const ENLACES = [
@@ -61,9 +63,9 @@ export function Menu() {
   return (
     <>
       {/* Riel de íconos */}
-      <aside className="fixed inset-y-0 left-0 z-40 flex w-14 flex-col items-center bg-negro py-2">
-        <Link href="/" className="mb-3 flex h-9 w-10 items-center justify-center rounded-sm bg-acento text-[13px] font-bold tracking-tight text-white" title="Informe de Rentabilidad">
-          IR
+      <aside className="no-imprimir fixed inset-y-0 left-0 z-40 flex w-14 flex-col items-center bg-negro py-2">
+        <Link href="/" className="mb-3 flex h-10 w-10 items-center justify-center" title="Informe de Rentabilidad">
+          <Logo size={36} />
         </Link>
         <nav className="flex flex-1 flex-col items-center gap-1 overflow-y-auto overflow-x-visible" aria-label="Menú principal">
           {enlaces.map((e) => {
@@ -108,11 +110,11 @@ export function Menu() {
       </aside>
 
       {/* Barra superior */}
-      <header className="fixed top-0 right-0 left-14 z-30 flex h-9 items-stretch bg-carbon text-[14px] text-white">
+      <header className="no-imprimir fixed top-0 right-0 left-14 z-30 flex h-9 items-stretch bg-carbon text-[14px] text-white">
         {enCP ? (
           <>
             <Link href="/cp" className="flex items-center px-6 font-medium text-white hover:bg-white/10">Centro de producción · Cierre de mes</Link>
-            {pestanaCP && <div className="flex items-center bg-marca px-6 font-medium text-white">{pestanaCP.texto}</div>}
+            {pestanaCP && <div data-seccion className="flex items-center bg-marca px-6 font-medium text-white">{pestanaCP.texto}</div>}
             <div className="ml-auto hidden items-center gap-3 px-4 text-xs text-white/70 sm:flex">
               <span>San Agustín · Rocoto</span>
               <Link href="/" className="rounded-sm border border-white/30 px-2 py-0.5 text-white/90 hover:bg-white/10">← Informe de Rentabilidad</Link>
@@ -121,12 +123,13 @@ export function Menu() {
         ) : (
           <>
             <div className="flex items-center px-6 text-white/90">Informe de Rentabilidad</div>
-            {actual && <div className="flex items-center bg-marca px-6 font-medium text-white">{actual.texto}</div>}
+            {actual && <div data-seccion className="flex items-center bg-marca px-6 font-medium text-white">{actual.texto}</div>}
             <div className="ml-auto hidden items-center px-4 text-xs text-white/70 sm:flex">
               {perfil.rol === "admin" ? (marcaFiltro ?? "Todas las marcas") : misMarcas.map((m) => m.nombre).join(" · ")}
             </div>
           </>
         )}
+        <Descargar />
       </header>
     </>
   );

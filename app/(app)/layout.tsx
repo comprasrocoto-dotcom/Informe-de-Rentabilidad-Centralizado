@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { ProveedorApp, type Perfil } from "@/components/Contexto";
 import { Menu } from "@/components/Menu";
+import { LogoCompleto } from "@/components/Logo";
 
 export default async function LayoutApp({ children }: { children: React.ReactNode }) {
   const supabase = await crearClienteServidor();
@@ -41,6 +42,12 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
     <ProveedorApp perfil={perfil}>
       <Menu />
       <main className="ml-14 min-w-0 px-4 pt-[52px] pb-8 lg:px-8 lg:pt-[60px]">
+        <div className="solo-imprimir mb-4 border-b-2 border-marca pb-3">
+          <div className="flex items-end justify-between">
+            <LogoCompleto size={34} />
+            <span className="text-xs text-texto-2">{perfil.email} · {new Date().toLocaleDateString("es-CO", { timeZone: "America/Bogota", dateStyle: "long" })}</span>
+          </div>
+        </div>
         <div className="mx-auto max-w-[1440px]">{children}</div>
       </main>
     </ProveedorApp>
