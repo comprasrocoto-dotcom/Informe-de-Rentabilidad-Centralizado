@@ -14,6 +14,7 @@ export const ENLACES = [
   { href: "/ventas", texto: "Ventas", icono: "M3 17l6-6 4 4 8-8M15 7h6v6" },
   { href: "/descuentos", texto: "Descuentos", icono: "M19 5L5 19M7.5 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm9 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" },
   { href: "/compras", texto: "Compras", icono: "M3 4h2l2.4 11.2a1 1 0 001 .8h9.2a1 1 0 001-.8L20 8H6.2M9 20a1 1 0 100-2 1 1 0 000 2zm9 0a1 1 0 100-2 1 1 0 000 2z" },
+  { href: "/compras-ventas", texto: "Compras vs ventas", icono: "M12 3v18M5 7h14M5 7l-3 7a3 3 0 006 0zM19 7l-3 7a3 3 0 006 0zM8 21h8" },
   { href: "/traslados", texto: "Traslados", icono: "M3 7h11v9H3zM14 10h4l3 3v3h-7M7 19a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4z" },
   { href: "/costo", texto: "Costo", icono: "M12 3v18M17 7.5c0-1.9-2.2-3.5-5-3.5s-5 1.6-5 3.5 2.2 3 5 3.5 5 1.6 5 3.5-2.2 3.5-5 3.5-5-1.6-5-3.5" },
   { href: "/carta", texto: "Rentabilidad de carta", icono: "M5 4h14v16H5zM9 8h6M9 12h6M9 16h3" },

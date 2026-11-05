@@ -221,3 +221,20 @@ Traslados índigo · Sedes celeste · Facturas/ticket turquesa · Fabricación c
 San Agustín azul y Rocoto naranja (CP). Las que superan la meta salen en rojo.
 La tarjeta grande del % de costo del Resumen se pinta verde (en meta) o roja (sobre la meta) con una insignia,
 y Cocina y Bar tienen su propio recuadro.
+
+## 5 de noviembre de 2026 — Compras vs ventas (mes a mes por centro de costo)
+
+Nueva pestaña **Compras vs ventas** (`app/(app)/compras-ventas`, cálculo en `lib/comprasVentas.ts`), para Cocina,
+Bar y el total. Responde: "con lo que vendí este mes, ¿compré más de lo que debía?".
+
+- **Compras** = compras del centro de costo + traslados recibidos.
+- **% compra / venta** = compras ÷ ventas del mismo centro.
+- **Referencia** (se elige): mes anterior, promedio de los meses anteriores o la meta de costo.
+- **Compra esperada** = ventas del mes × % de referencia. **Diferencia** = compras − compra esperada.
+  Ejemplo: vendo $100 M y compro $20 M (20 %); el mes siguiente vendo $100 M y compro $30 M → esperada $20 M,
+  diferencia +$10 M → "Compró de más".
+- **Señal** con tolerancia elegible (±1, 2, 3 o 5 puntos): Compró de más / En línea / Compró de menos.
+- **Compra de más acumulada** = suma de la diferencia de los meses marcados "Compró de más".
+- **Variación inventario** (final − inicial del mes) para ver si lo comprado de más quedó guardado o se consumió.
+- Tabla **por sede** para el mes elegido (cada sede contra sí misma), ordenada por quién compró más de lo esperado.
+- Se trae un mes extra antes de "Desde" para poder comparar el primer mes del filtro (`useCostos(mesesAntes)`).
