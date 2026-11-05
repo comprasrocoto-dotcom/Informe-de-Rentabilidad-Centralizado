@@ -314,3 +314,20 @@ En **Cargar datos**, un bloque "Revisar lo cargado" con filtros de **Marca** y *
   El mes en curso sale en gris. Opción "Solo lo que falta". Los centros de producción solo aparecen si alguna vez
   tuvieron datos de ese tipo; en ventas no aparecen.
 - **Historial de cargas:** además del mes, ahora se filtra por marca y tipo.
+
+## 5 de noviembre de 2026 — CP: archivos independientes que se suman
+
+En Centro de producción → Cargar archivo ahora se elige **qué se sube**: el libro de cierre completo, o un
+archivo suelto de Compras, Fabricación, Traslados, Inventario final, Base de conversión o Costos compartidos,
+en Excel (cualquier nombre de hoja) o archivo plano (.csv / .txt, con ; y decimales con coma).
+
+- **Cómo guardar:** "Agregar a lo que hay" (por defecto) solo reemplaza los días exactos, por marca, que trae el
+  archivo (no duplica si se vuelve a subir). En Base de conversión agrega o actualiza códigos; en Costos
+  compartidos, los conceptos de esos meses. "Reemplazar meses completos" ahora solo toca las marcas que trae el
+  archivo (antes borraba ambas marcas del mes).
+- **Marca:** columna Marca → almacén del CP (CENTRO DE PRODUCCION / PLANTA PRODUCCIÓN ROCOTO) → en traslados, la
+  sede que recibe (ROCOTO… → Rocoto; Oviedo, Laureles, Interplaza, Tesoro, 123 WOK → San Agustín) → la marca
+  elegida al subir. Probado: en el archivo real la marca deducida coincide en las 3.818 filas de traslados.
+- **Inventario suelto:** si el archivo trae columna "Artículo" se lee por nombre de columna (export del ERP);
+  la hoja Inventario_CP del cierre se sigue leyendo por posición.
+- El libro completo se lee exactamente igual que antes (comparado fila por fila).

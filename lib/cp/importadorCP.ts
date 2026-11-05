@@ -1,7 +1,7 @@
 // Lectura del archivo "Cierre de mes CP" (misma lógica del tablero cierre-de-mes-cp).
 // Hojas: Compras, Fabricaciones, Traslados_Sedes, Inventario_CP (Inv Final), Base_Conversion, Costos_Compartidos_CP.
 import * as XLSX from "xlsx";
-import { arreglarTexto, fecha as leerFecha, normalizar, numero } from "../importador";
+import { arreglarTexto, decodificarTexto, detectarSeparador, esArchivoPlano, fecha as leerFecha, normalizar, numero } from "../importador";
 
 export type MarcaCP = "San Agustín" | "Rocoto";
 export type TipoCP = "compras" | "fabricaciones" | "traslados" | "inventarios" | "base_conversion" | "costos";
@@ -32,6 +32,25 @@ export function marcaCP(v: unknown): MarcaCP | null {
   return null;
 }
 
+/** Marca según el almacén: CENTRO DE PRODUCCION → San Agustín, PLANTA PRODUCCIÓN ROCOTO → Rocoto */
+export function marcaPorAlmacen(v: unknown): MarcaCP | null {
+  const an = normalizar(v);
+  if (an.includes("planta produccion rocoto")) return "Rocoto";
+  if (an.includes("centro de produccion")) return "San Agustín";
+  return null;
+}
+
+/** En traslados, la marca se deduce de la sede que recibe: sedes ROCOTO → Rocoto; sedes de 123 WOK → San Agustín */
+export function marcaPorSedeDestino(v: unknown): MarcaCP | null {
+  const n = normalizar(v);
+  if (!n) return null;
+  if (n.includes("rocoto")) return "Rocoto";
+  if (/(123 ?wok|oviedo|interplaza|tesoro|^laureles$)/.test(n)) return "San Agustín";
+  return null;
+}
+
+export type OpcionesCP = { tipoForzado?: TipoCP | null; marcaForzada?: MarcaCP | null; decimalComa?: boolean };
+
 export function tipoHojaCP(nombre: string): TipoCP | null {
   const n = normalizar(nombre).replace(/_/g, " ");
   if (n.includes("costos compartidos") || n.includes("costo compartido")) return "costos";
@@ -56,7 +75,11 @@ function indice(enc: string[], ...opciones: string[]): number {
   return -1;
 }
 
-export function procesarHojaCP(nombre: string, filasCrudas: unknown[][], tipo: TipoCP): HojaCP {
+export function procesarHojaCP(nombre: string, filasCrudas: unknown[][], tipo: TipoCP, op: OpcionesCP = {}): HojaCP {
+  const num = (v: unknown) => numero(v, op.decimalComa);
+  // Marca: columna "Marca" si la hay; si no, por el almacén; si no, la que se eligió al subir
+  const marcaDe = (vMarca: unknown, ...almacenes: unknown[]): MarcaCP | null =>
+    marcaCP(vMarca) ?? almacenes.map(marcaPorAlmacen).find((x) => x) ?? op.marcaForzada ?? null;
   const res: HojaCP = { hoja: nombre, tipo, filasLeidas: 0, descartadas: 0, duplicadas: 0, desde: null, hasta: null, filas: [] };
   const enc = (filasCrudas[0] ?? []).map((h) => normalizar(h));
   const datos = filasCrudas.slice(1).filter((r) => r && r.some((v) => v !== null && v !== undefined && v !== ""));
@@ -77,13 +100,12 @@ export function procesarHojaCP(nombre: string, filasCrudas: unknown[][], tipo: T
     for (const r of datos) {
       const almacen = t(g(r, iA));
       if (!almacen) { res.descartadas++; continue; }
-      const an = normalizar(almacen);
-      const marca: MarcaCP | null = an.includes("centro de produccion") ? "San Agustín" : an.includes("planta produccion rocoto") ? "Rocoto" : null;
+      const marca: MarcaCP | null = marcaPorAlmacen(almacen);
       if (!marca) { res.descartadas++; continue; }
       const f = leerFecha(g(r, iF));
       if (!f) { res.descartadas++; continue; }
       const serie = t(g(r, iS)), articulo = t(g(r, iAr));
-      const uds = numero(g(r, iU)), vu = numero(g(r, iV)), total = numero(g(r, iTo));
+      const uds = num(g(r, iU)), vu = num(g(r, iV)), total = num(g(r, iTo));
       const clave = [almacen, serie, articulo, uds, vu, total].join("|");
       if (vistos.has(clave)) { res.duplicadas++; continue; }
       vistos.add(clave);
@@ -100,14 +122,14 @@ export function procesarHojaCP(nombre: string, filasCrudas: unknown[][], tipo: T
       iAf = indice(enc, "artifabri"), iAi = indice(enc, "artinsumo"), iU = indice(enc, "subarticulo", "unidad"),
       iQ = indice(enc, "variacion stock"), iCu = indice(enc, "coste unitario"), iCv = indice(enc, "coste variacion");
     for (const r of datos) {
-      const marca = marcaCP(g(r, iM));
+      const marca = marcaDe(g(r, iM), g(r, iA));
       const f = leerFecha(g(r, iF));
       if (!marca || !f) { res.descartadas++; continue; }
       marcar(f);
       res.filas.push({
         marca, fecha: f, serie: t(g(r, iS)), almacen: t(g(r, iA)), familia: t(g(r, iFa)), codigo: t(g(r, iCo)),
         artifabri: t(g(r, iAf)), artinsumo: t(g(r, iAi)), unidad: t(g(r, iU)),
-        cantidad: numero(g(r, iQ)), costo_unitario: numero(g(r, iCu)), costo: numero(g(r, iCv)),
+        cantidad: num(g(r, iQ)), costo_unitario: num(g(r, iCu)), costo: num(g(r, iCv)),
       });
     }
   } else if (tipo === "traslados") {
@@ -115,35 +137,53 @@ export function procesarHojaCP(nombre: string, filasCrudas: unknown[][], tipo: T
     const iM = indice(enc, "marca"), iF = indice(enc, "fecha doc", "fecha"), iS = indice(enc, "serie / numero", "serie"),
       iA = indice(enc, "almacen"), iAd = indice(enc, "almacen destino"), iFa = indice(enc, "familia"), iAr = indice(enc, "articulo"),
       iU = indice(enc, "subarticulo"), iT = indice(enc, "tipo documento"), iMo = indice(enc, "motivo traspaso", "motivo"),
-      iQ = indice(enc, "variacion stock"), iC = indice(enc, "coste unitario", "coste"), iCv = indice(enc, "coste variacion");
+      iQ = indice(enc, "variacion stock"), iC = indice(enc, "coste unitario", "coste"), iCv = indice(enc, "coste variacion"),
+      iAo = indice(enc, "almacen origen");
     for (const r of datos) {
-      const marca = marcaCP(g(r, iM));
+      // Marca: columna Marca → almacén de origen del CP → sede que recibe → la elegida al subir
+      const marca = marcaCP(g(r, iM)) ?? marcaPorAlmacen(g(r, iAo)) ?? marcaPorSedeDestino(g(r, iAd) ?? g(r, iA)) ?? op.marcaForzada ?? null;
       const f = leerFecha(g(r, iF));
       if (!marca || !f) { res.descartadas++; continue; }
       marcar(f);
       res.filas.push({
         marca, fecha: f, serie: t(g(r, iS)), sede_destino: t(g(r, iAd)) ?? t(g(r, iA)), familia: t(g(r, iFa)),
         articulo: t(g(r, iAr)), unidad: t(g(r, iU)), tipo_documento: t(g(r, iT)), motivo: t(g(r, iMo)),
-        cantidad: numero(g(r, iQ)), costo_unitario: numero(g(r, iC)), costo: numero(g(r, iCv)),
+        cantidad: num(g(r, iQ)), costo_unitario: num(g(r, iC)), costo: num(g(r, iCv)),
       });
     }
-  } else if (tipo === "inventarios") {
-    // Posiciones verificadas contra el archivo real (los encabezados de esta hoja están corridos):
+  } else if (tipo === "inventarios" && !enc.includes("articulo")) {
+    // Hoja Inventario_CP del cierre: los encabezados están corridos, se lee por posición (verificado contra el archivo real):
     // Marca, Fecha, Mes, Serie, Almacén, Familia, Categoría, Artículo, Unidad, Coste línea, Stock a fecha, Variación, Stock inventario, Total
     for (const r of datos) {
-      const marca = marcaCP(r[0]);
+      const marca = marcaDe(r[0], r[4]);
       const f = leerFecha(r[1]);
       if (!marca || !f) { res.descartadas++; continue; }
       marcar(f);
       res.filas.push({
         marca, fecha: f, serie: t(r[3]), almacen: t(r[4]), familia: t(r[5]), categoria: t(r[6]), articulo: t(r[7]), unidad: t(r[8]),
-        costo_linea: numero(r[9]), stock_fecha: numero(r[10]), variacion: numero(r[11]), stock_inventario: numero(r[12]), total: numero(r[13]),
+        costo_linea: num(r[9]), stock_fecha: num(r[10]), variacion: num(r[11]), stock_inventario: num(r[12]), total: num(r[13]),
+      });
+    }
+  } else if (tipo === "inventarios") {
+    // Archivo de inventario independiente (exportado del ERP): se lee por nombre de columna
+    const iM = indice(enc, "marca"), iF = indice(enc, "fecha doc", "fecha"), iS = indice(enc, "serie / numero", "serie"),
+      iA = indice(enc, "almacen"), iFa = indice(enc, "familia"), iCa = indice(enc, "categoria", "subfamilia", "centro de costos"),
+      iAr = indice(enc, "articulo"), iU = indice(enc, "unidad", "subarticulo"), iCl = indice(enc, "coste linea", "coste unitario", "costo unitario"),
+      iSf = indice(enc, "stock a fecha"), iV = indice(enc, "variacion stock"), iSi = indice(enc, "stock inventario"), iT = indice(enc, "total");
+    for (const r of datos) {
+      const marca = marcaDe(g(r, iM), g(r, iA));
+      const f = leerFecha(g(r, iF));
+      if (!marca || !f) { res.descartadas++; continue; }
+      marcar(f);
+      res.filas.push({
+        marca, fecha: f, serie: t(g(r, iS)), almacen: t(g(r, iA)), familia: t(g(r, iFa)), categoria: t(g(r, iCa)), articulo: t(g(r, iAr)), unidad: t(g(r, iU)),
+        costo_linea: num(g(r, iCl)), stock_fecha: num(g(r, iSf)), variacion: num(g(r, iV)), stock_inventario: num(g(r, iSi)), total: num(g(r, iT)),
       });
     }
   } else if (tipo === "base_conversion") {
     const iC = indice(enc, "codigo"), iA = indice(enc, "articulo"), iU = indice(enc, "unidad"), iF = indice(enc, "unidad de conversion", "factor");
     for (const r of datos) {
-      res.filas.push({ codigo: t(g(r, iC)), articulo: t(g(r, iA)), unidad: t(g(r, iU)), factor: numero(g(r, iF)) || 1 });
+      res.filas.push({ codigo: t(g(r, iC)), articulo: t(g(r, iA)), unidad: t(g(r, iU)), factor: num(g(r, iF)) || 1 });
     }
   } else if (tipo === "costos") {
     // Formato: Mes | Concepto | Valor  (también acepta Fecha | … | Total)
@@ -158,7 +198,7 @@ export function procesarHojaCP(nombre: string, filasCrudas: unknown[][], tipo: T
         const f = leerFecha(v);
         mes = f ? f.slice(0, 7) : null;
       }
-      const valor = numero(g(r, iV));
+      const valor = num(g(r, iV));
       if (!mes || !valor) { res.descartadas++; continue; }
       marcar(`${mes}-01`);
       res.filas.push({ mes, concepto: t(g(r, iCon)) ?? "Sin concepto", valor });
@@ -167,15 +207,33 @@ export function procesarHojaCP(nombre: string, filasCrudas: unknown[][], tipo: T
   return res;
 }
 
-export function leerArchivoCP(datos: ArrayBuffer): { hojas: HojaCP[]; ignoradas: string[] } {
+/**
+ * Lee un archivo del CP. Sin `tipoForzado` se espera el libro de cierre (cada hoja se reconoce por su nombre).
+ * Con `tipoForzado` (archivo independiente) se lee esa información de la hoja que la contenga o, si ninguna se
+ * llama así, de la primera hoja con datos. Acepta Excel y archivo plano (.csv / .txt).
+ */
+export function leerArchivoCP(datos: ArrayBuffer, nombreArchivo = "archivo.xlsx", op: OpcionesCP = {}): { hojas: HojaCP[]; ignoradas: string[] } {
+  if (esArchivoPlano(nombreArchivo)) {
+    const texto = decodificarTexto(datos);
+    const sep = detectarSeparador(texto);
+    const tipo = op.tipoForzado ?? tipoHojaCP(nombreArchivo);
+    if (!tipo) return { hojas: [], ignoradas: [nombreArchivo] };
+    const wb = XLSX.read(texto, { type: "string", FS: sep, raw: true, dense: true });
+    const filas = XLSX.utils.sheet_to_json<unknown[]>(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: null, blankrows: false });
+    return { hojas: [procesarHojaCP(nombreArchivo, filas, tipo, { ...op, decimalComa: sep === ";" })], ignoradas: [] };
+  }
   const wb = XLSX.read(datos, { type: "array", cellDates: true, dense: true });
+  const leer = (n: string) => XLSX.utils.sheet_to_json<unknown[]>(wb.Sheets[n], { header: 1, raw: true, defval: null, blankrows: false });
+  if (op.tipoForzado) {
+    const nombre = wb.SheetNames.find((n) => tipoHojaCP(n) === op.tipoForzado) ?? wb.SheetNames.find((n) => leer(n).length > 1) ?? wb.SheetNames[0];
+    return { hojas: [procesarHojaCP(nombre, leer(nombre), op.tipoForzado, op)], ignoradas: wb.SheetNames.filter((n) => n !== nombre) };
+  }
   const hojas: HojaCP[] = [];
   const ignoradas: string[] = [];
   for (const nombre of wb.SheetNames) {
     const tipo = tipoHojaCP(nombre);
     if (!tipo) { ignoradas.push(nombre); continue; }
-    const filas = XLSX.utils.sheet_to_json<unknown[]>(wb.Sheets[nombre], { header: 1, raw: true, defval: null, blankrows: false });
-    hojas.push(procesarHojaCP(nombre, filas, tipo));
+    hojas.push(procesarHojaCP(nombre, leer(nombre), tipo, op));
   }
   return { hojas, ignoradas };
 }
