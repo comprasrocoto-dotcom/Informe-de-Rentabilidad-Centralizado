@@ -145,3 +145,14 @@ Todos / Cocina / Bar en la barra de filtros.
 - El cruce de productos con fichas es más robusto (corrige tildes dañadas y espacios dobles): en Rocoto julio
   encuentra ficha para 200 productos en vez de 179.
 - El gráfico de tendencia del menú, que en el original usaba dos ejes, se separó en dos gráficos.
+
+## 4 de noviembre de 2026 — Informe de descuentos
+
+Nueva pestaña **Descuentos**: cuánto representan los descuentos sobre la venta, por mes, sede, marca y tipo.
+
+- **Descuento** = valor de las líneas de venta cuyo artículo, familia, centro de costo o tipo de documento dice
+  "descuento" (o "estrategia"), restando sus reversos en notas crédito. Tipos: Socios, Comercial, Empleados,
+  Cumpleaños, Cortesía, Reuniones, Estrategia socios y otros.
+- **% sobre ventas** = descuentos ÷ ventas totales (base neta sin IVA ni propinas).
+- **% sobre venta bruta** = descuentos ÷ (ventas + descuentos).
+- No incluye descuentos aplicados dentro del precio (por ejemplo, tarifas de personal), porque no aparecen como línea aparte.

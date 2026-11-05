@@ -8,6 +8,7 @@ import { useApp } from "./Contexto";
 const ENLACES = [
   { href: "/", texto: "Resumen", icono: "M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z" },
   { href: "/ventas", texto: "Ventas", icono: "M3 17l6-6 4 4 8-8M15 7h6v6" },
+  { href: "/descuentos", texto: "Descuentos", icono: "M19 5L5 19M7.5 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm9 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" },
   { href: "/compras", texto: "Compras", icono: "M3 4h2l2.4 11.2a1 1 0 001 .8h9.2a1 1 0 001-.8L20 8H6.2M9 20a1 1 0 100-2 1 1 0 000 2zm9 0a1 1 0 100-2 1 1 0 000 2z" },
   { href: "/costo", texto: "Costo", icono: "M12 3v18M17 7.5c0-1.9-2.2-3.5-5-3.5s-5 1.6-5 3.5 2.2 3 5 3.5 5 1.6 5 3.5-2.2 3.5-5 3.5-5-1.6-5-3.5" },
   { href: "/carta", texto: "Rentabilidad de carta", icono: "M5 4h14v16H5zM9 8h6M9 12h6M9 16h3" },
