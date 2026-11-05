@@ -9,6 +9,7 @@ import { Tarjeta } from "@/components/Indicadores";
 import { ListaBarras } from "@/components/ListaBarras";
 import { TablaDimension } from "@/components/TablaDimension";
 import { fmtM, fmtMes, fmtNum, fmtPct, fmtPesos } from "@/lib/formato";
+import { ComparacionSedesCostos } from "@/components/ComparacionSedes";
 
 // Traslados = mercancía que llega a cada sede desde el centro de producción / planta (u otra sede).
 // Suman al costo de la sede que los recibe (inventario inicial + compras + traslados − inventario final).
@@ -76,6 +77,7 @@ export default function Traslados() {
             <Tarjeta titulo="Artículos distintos" valor={fmtNum(Number(k.articulos))} nota="Subrecetas e insumos enviados" />
           </div>
 
+          <ComparacionSedesCostos metrica="traslados" nota="Traslados recibidos en Cocina y Bar" />
           <div className="mb-5">
             <GraficoBarras titulo="Traslados por mes" datos={d.mes.map((x) => ({ etiqueta: fmtMes(x.clave), valor: Number(x.total) }))} />
           </div>

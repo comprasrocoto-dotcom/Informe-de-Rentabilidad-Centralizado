@@ -10,6 +10,7 @@ import { fmtM, fmtMes, fmtPct, fmtPesos } from "@/lib/formato";
 import { useCostos } from "@/lib/useCostos";
 import { analizar, excesoAcumulado, type FilaCV, type Referencia, type Senal } from "@/lib/comprasVentas";
 import { cifras, type FiltroCC } from "@/lib/rentabilidad";
+import { ComparacionSedesCostos } from "@/components/ComparacionSedes";
 
 const REFS: { v: Referencia; t: string; d: string }[] = [
   { v: "anterior", t: "Mes anterior", d: "Compara cada mes con el % de compra sobre venta del mes anterior" },
@@ -145,6 +146,7 @@ export default function ComprasVentas() {
             </div>
           )}
 
+          <ComparacionSedesCostos metrica="pctCompra" />
           <div className="mb-4 grid gap-3 lg:grid-cols-2">
             <GraficoSeries titulo={`Ventas, compras y compra esperada · ${NOMBRE_CC[cc]}`} datos={graf1}
               series={[{ clave: "ventas", nombre: "Ventas", color: "#1976d2" }, { clave: "compras", nombre: "Compras", color: "#eb6834" }, { clave: "esperada", nombre: "Compra esperada", color: "#1baf7a" }]} />

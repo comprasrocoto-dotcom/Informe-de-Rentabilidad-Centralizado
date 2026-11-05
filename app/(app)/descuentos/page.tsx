@@ -8,6 +8,7 @@ import { GraficoLinea } from "@/components/Graficos";
 import { Tarjeta } from "@/components/Indicadores";
 import { ListaBarras } from "@/components/ListaBarras";
 import { fmtM, fmtMes, fmtNum, fmtPct, fmtPesos } from "@/lib/formato";
+import { ComparacionSedes } from "@/components/ComparacionSedes";
 
 // Descuento = valor de las líneas de venta marcadas como descuento (socios, comercial, empleados,
 // cumpleaños, cortesía, reuniones, estrategia socios…), neto de sus reversos en notas crédito.
@@ -87,6 +88,12 @@ export default function Descuentos() {
             </p>
           )}
 
+          <ComparacionSedes
+            titulo="% de descuento sobre la venta por sede" agregado="razon" formato={(n) => fmtPct(n)}
+            filas={(datos?.por_mes ?? []).map((x) => ({ sede: sedeNombre(x.s), mes: x.mes.slice(0, 7), num: Math.abs(Number(x.descuentos ?? 0)), den: Number(x.ventas) }))}
+            resaltar={filtros.sedeId ? sedeNombre(filtros.sedeId) : null}
+            nota={filtros.sedeId ? "Para comparar todas las sedes elige “Todas las sedes”" : undefined}
+          />
           <div className="mb-5 grid gap-3 lg:grid-cols-[1.3fr_1fr]">
             <GraficoLinea titulo="% de descuento sobre la venta, por mes" datos={r.porMes.map((x) => ({ etiqueta: fmtMes(x.mes), valor: pct(x.desc, x.ventas) }))} />
             <ListaBarras

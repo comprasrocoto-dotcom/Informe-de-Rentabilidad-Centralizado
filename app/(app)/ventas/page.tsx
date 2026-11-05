@@ -7,6 +7,7 @@ import { Encabezado } from "@/components/Encabezado";
 import { Tarjeta } from "@/components/Indicadores";
 import { TablaDimension } from "@/components/TablaDimension";
 import { fmtM, fmtNum, fmtPesos } from "@/lib/formato";
+import { ComparacionSedesCostos } from "@/components/ComparacionSedes";
 
 const COLS = [
   { clave: "unidades", titulo: "Unidades", tipo: "num" as const },
@@ -40,6 +41,7 @@ export default function Ventas() {
         <Tarjeta titulo="Familias con venta" valor={fmtNum(Number(k?.familias ?? 0))} />
         <Tarjeta titulo="Ticket promedio" valor={k?.facturas ? fmtPesos(ventas / Number(k.facturas)) : "—"} nota={k?.facturas ? `${fmtNum(Number(k.facturas))} facturas` : "Vuelve a subir las ventas para contar facturas"} />
       </div>
+      <ComparacionSedesCostos metrica="ventas" />
       <div className="mb-4 grid gap-4 lg:grid-cols-2">
         <TablaDimension rpc="ventas_por" dim="cc_negocio" titulo="Participación por centro de costo" nota="Eventos se reparte entre Cocina y Bar según el artículo" columnas={COLS} columnaPrincipal="base" totalRef={ventas || null} />
         <TablaDimension rpc="ventas_por" dim="familia" titulo="Ventas por familia" columnas={COLS} columnaPrincipal="base" totalRef={ventas || null} />

@@ -252,3 +252,20 @@ El módulo Compras ahora tiene pestañas: **General** (lo que ya existía) y **C
   anterior, último mes y variación; en artículos también unidades, precio promedio y variación de precio) y
   **Mes a mes** (una columna por mes, filtrable por Cocina, Bar o ambos). Con buscador y descarga a Excel/PDF.
 - Verificado contra la base: octubre Cocina $103.600.048 y Bar $71.197.236 (Casa de Nadie).
+
+## 5 de noviembre de 2026 — Comparación por sede en todos los módulos
+
+Nueva gráfica reutilizable `components/ComparacionSedes.tsx` con dos vistas:
+- **Total del período:** barras horizontales de cada sede, ordenadas de mayor a menor, con el valor y su
+  participación sobre el total. La sede elegida en el filtro se resalta; en % de costo la línea roja es la meta y
+  las sedes por encima salen en rojo.
+- **Mes a mes:** una línea por sede (las 7 con más peso, con la paleta validada) y el resto como promedio en gris
+  punteado, para que no aplaste la escala.
+
+`ComparacionSedesCostos` la alimenta del motor de costos (`resumen_costos`), agrupado sin el filtro de sede para
+comparar todas las sedes de la marca (los centros de producción no entran). Dónde está:
+Resumen (% costo), Ventas (ventas), Descuentos (% descuento, con sus propios datos), Compras General (compras),
+Compras Cocina y Bar (compras Cocina + Bar), Compras vs ventas (% compra/venta), Traslados (traslados recibidos en
+Cocina y Bar), Costo (% costo), Participación (participación en la venta), Inventarios (último inventario final),
+Mercancía vendida (mercancía vendida) y Rentabilidad de carta (ventas). Respeta el filtro de centro de costo donde
+la página lo tiene.

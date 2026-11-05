@@ -9,6 +9,7 @@ import { notaMV, PctMeta, Tarjeta } from "@/components/Indicadores";
 import { fmtM, fmtMes, fmtNum, fmtPct, fmtPesos } from "@/lib/formato";
 import { cifras } from "@/lib/rentabilidad";
 import { useCostos } from "@/lib/useCostos";
+import { ComparacionSedesCostos } from "@/components/ComparacionSedes";
 
 type Audit = { tabla: string; valor: string; clasificado: string; filas: number; total: number };
 
@@ -51,6 +52,7 @@ export default function Costo() {
           </div>
           <p className="mb-4 text-xs text-texto-3">Cálculo: {notaMV(g)}</p>
 
+          <ComparacionSedesCostos metrica="pctCosto" cc="todos" />
           <div className="mb-5">
             <GraficoPctCentros
               titulo="Costo mes a mes por centro de costo"

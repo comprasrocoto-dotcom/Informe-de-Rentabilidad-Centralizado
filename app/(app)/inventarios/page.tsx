@@ -9,6 +9,7 @@ import { ListaBarras } from "@/components/ListaBarras";
 import { fmtDec, fmtFecha, fmtM, fmtNum, fmtPct } from "@/lib/formato";
 import { cifras } from "@/lib/rentabilidad";
 import { useCostos } from "@/lib/useCostos";
+import { ComparacionSedesCostos } from "@/components/ComparacionSedes";
 
 type Det = {
   total: number; referencias: number; fechas: string[];
@@ -48,6 +49,7 @@ export default function Inventarios() {
             <Tarjeta titulo="Mercancía vendida" valor={fmtM(c.mv)} nota={`${fmtPct(c.pct)} sobre ventas`} />
             <Tarjeta titulo="Referencias" valor={fmtNum(Number(d.referencias))} nota={`Artículos inventariados${d.fechas.length ? ` · conteo del ${d.fechas.map(fmtFecha).slice(-3).join(", ")}` : ""}`} />
           </div>
+          <ComparacionSedesCostos metrica="invFinal" />
           <div className="mb-5 grid gap-3 lg:grid-cols-3">
             <ListaBarras titulo="Inventario por centro de costo" filas={d.por_cc.map((x) => ({ k: x.k, v: Number(x.v) }))} formato={fmtM} />
             <ListaBarras titulo="Inventario por familia" filas={d.por_familia.slice(0, 12).map((x) => ({ k: x.k, v: Number(x.v), detalle: d.total ? fmtPct(Number(x.v) / Number(d.total)) : "" }))} formato={fmtM} />

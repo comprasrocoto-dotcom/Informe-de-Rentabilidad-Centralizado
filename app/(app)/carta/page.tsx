@@ -10,6 +10,7 @@ import { ListaBarras } from "@/components/ListaBarras";
 import { fmtM, fmtMes, fmtNum, fmtPct, fmtPesos } from "@/lib/formato";
 import { cifras } from "@/lib/rentabilidad";
 import { useCostos } from "@/lib/useCostos";
+import { ComparacionSedesCostos } from "@/components/ComparacionSedes";
 
 // Costo de cada plato = Coste de la ficha (hoja RENTABILIDAD) × unidades vendidas (hoja VENTAS).
 // Utilidad = Venta base − Costo · Margen = Utilidad / Venta base · Costo % = Costo / Venta base.
@@ -178,6 +179,7 @@ export default function IngenieriaMenu() {
             <Tarjeta titulo="Costo promedio por plato" valor={cpp ? fmtPesos(cpp) : "—"} />
           </div>
 
+          <ComparacionSedesCostos metrica="ventas" />
           <div className="mb-5 grid gap-3 lg:grid-cols-2 xl:grid-cols-4">
             <ListaBarras titulo="Mayor utilidad" filas={[...conF].sort((a, b) => b.util - a.util).slice(0, 10).map((o) => ({ k: o.art, v: o.util, detalle: `${fmtNum(o.uds)} uds` }))} formato={fmtM} />
             <ListaBarras titulo="Más vendidos" filas={[...items].sort((a, b) => b.uds - a.uds).slice(0, 10).map((o) => ({ k: o.art, v: o.uds }))} formato={fmtNum} />

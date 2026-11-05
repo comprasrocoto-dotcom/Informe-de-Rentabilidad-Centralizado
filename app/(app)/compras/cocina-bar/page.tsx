@@ -8,6 +8,7 @@ import { GraficoSeries } from "@/components/Graficos";
 import { PestanasCompras } from "@/components/PestanasCompras";
 import { TarjetaColor, TEMAS } from "@/components/TarjetaColor";
 import { fmtDec, fmtM, fmtMes, fmtNum, fmtPct, fmtPesos } from "@/lib/formato";
+import { ComparacionSedesCostos } from "@/components/ComparacionSedes";
 
 // Informe de compras de Cocina y Bar: los dos centros de costo lado a lado, mes a mes y por proveedor,
 // familia, artículo o sede. Datos de la función compras_cocina_bar (respeta el acceso por marca).
@@ -118,6 +119,7 @@ export default function ComprasCocinaBar() {
               nota={fU?.vB != null ? `${fU.vB > 0 ? "▲" : "▼"} ${fmtPct(Math.abs(fU.vB))} frente a ${fmtMes(ant!)}` : "Sin mes anterior"} tema={fU?.vB != null && fU.vB > 0.05 ? TEMAS.alerta : TEMAS.costo} />
           </div>
 
+          <ComparacionSedesCostos metrica="compras" cc="todos" titulo="Compras Cocina + Bar por sede" />
           <div className="mb-4 grid gap-3 2xl:grid-cols-[1fr_1.3fr]">
             <GraficoSeries titulo="Compras por mes · Cocina y Bar" datos={mensual.map((x) => ({ etiqueta: fmtMes(x.m), cocina: x.cocina, bar: x.bar }))}
               series={[{ clave: "cocina", nombre: "Cocina", color: COLOR.Cocina }, { clave: "bar", nombre: "Bar", color: COLOR.Bar }]} />

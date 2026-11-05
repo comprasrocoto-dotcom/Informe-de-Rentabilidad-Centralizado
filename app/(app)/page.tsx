@@ -9,6 +9,7 @@ import { DetalleExcluidas, notaConteo, notaMV, PctMeta, Tarjeta } from "@/compon
 import { fmtM, fmtMes, fmtNum, fmtPct, fmtPesos } from "@/lib/formato";
 import { cifras, type Bloque } from "@/lib/rentabilidad";
 import { useCostos } from "@/lib/useCostos";
+import { ComparacionSedesCostos } from "@/components/ComparacionSedes";
 
 function AvisoConteo({ b }: { b: Bloque }) {
   const falta = [b.cocina, b.bar].some((c) => c.ventas !== 0 && !c.completo);
@@ -112,6 +113,7 @@ export default function Resumen() {
             </div>
           </div>
 
+          <ComparacionSedesCostos metrica="pctCosto" />
           <div className="mb-5 grid gap-3 lg:grid-cols-[1fr_1fr_0.9fr]">
             <GraficoBarras titulo="Ventas base por mes" datos={porMes.map(([m, b]) => ({ etiqueta: fmtMes(m), valor: cifras(b, cc).ventasBase }))} />
             <GraficoLinea titulo="% Costo de mercancía vendida por mes" meta={meta} datos={porMes.map(([m, b]) => ({ etiqueta: fmtMes(m), valor: cifras(b, cc).pct }))} />

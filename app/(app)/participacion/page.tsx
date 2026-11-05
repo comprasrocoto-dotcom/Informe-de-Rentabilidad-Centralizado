@@ -8,6 +8,7 @@ import { Tarjeta } from "@/components/Indicadores";
 import { ListaBarras } from "@/components/ListaBarras";
 import { TablaDimension } from "@/components/TablaDimension";
 import { fmtM, fmtPct, fmtPesos } from "@/lib/formato";
+import { ComparacionSedesCostos } from "@/components/ComparacionSedes";
 
 type V = { clave: string; unidades: number; base: number };
 type C = { clave: string; total: number };
@@ -54,6 +55,7 @@ export default function Participacion() {
         <Tarjeta titulo="Insumo con más compra" valor={d.ins[0]?.clave ?? "—"} exacto={d.ins[0] ? fmtPesos(Number(d.ins[0].total)) : undefined} />
         <Tarjeta titulo="Ratio compra / venta" valor={fmtPct(ratio)} exacto={`${fmtM(compras)} / ${fmtM(v)}`} tono={ratio != null && ratio > meta ? "alerta" : "bien"} />
       </div>
+      <ComparacionSedesCostos metrica="ventas" cc="todos" titulo="Participación de cada sede en la venta" />
       <div className="mb-5 grid gap-3 lg:grid-cols-2 xl:grid-cols-4">
         <ListaBarras titulo="Ventas por centro de costo" filas={d.cc.map((x) => ({ k: x.clave, v: Number(x.base), detalle: v ? fmtPct(Number(x.base) / v) : "" }))} formato={fmtM} />
         <ListaBarras titulo="Ventas por familia" filas={d.fam.map((x) => ({ k: x.clave, v: Number(x.base), detalle: v ? fmtPct(Number(x.base) / v) : "" }))} formato={fmtM} />

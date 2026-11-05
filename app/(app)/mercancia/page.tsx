@@ -8,6 +8,7 @@ import { ListaBarras } from "@/components/ListaBarras";
 import { fmtM, fmtNum, fmtPct, fmtPesos } from "@/lib/formato";
 import { cifras, type Bloque } from "@/lib/rentabilidad";
 import { useCostos } from "@/lib/useCostos";
+import { ComparacionSedesCostos } from "@/components/ComparacionSedes";
 
 type Fila = { nombre: string; cc: "Cocina" | "Bar" | "Total"; ini: number; com: number; fin: number; mv: number; ventas: number; util: number; pct: number | null; completo: boolean };
 
@@ -63,6 +64,7 @@ export default function Mercancia() {
             <Tarjeta titulo="Costo mercancía vendida" valor={fmtPct(g.pct)} exacto={fmtPesos(g.mv)} tono={g.pct != null && g.pct > meta ? "alerta" : "bien"} nota={g.pct != null && g.pct > meta ? "Por encima de la meta" : "Dentro de la meta"} />
             <Tarjeta titulo="Utilidad bruta" valor={fmtM(g.utilidad)} exacto={fmtPesos(g.utilidad)} nota={`${fmtPct(g.pctUtil)} sobre las ventas`} />
           </div>
+          <ComparacionSedesCostos metrica="mv" cc="todos" />
           <div className="mb-5 grid gap-3 lg:grid-cols-2">
             <ListaBarras titulo="Mercancía vendida por centro de costo" filas={(["Cocina", "Bar"] as const).map((cc) => ({ k: cc, v: cifras(total, cc).mv }))} formato={fmtM} />
             <ListaBarras titulo="Costo de mercancía vendida % por centro" filas={(["Cocina", "Bar"] as const).map((cc) => { const p = cifras(total, cc).pct ?? 0; return { k: cc, v: p, alerta: p > meta }; })} formato={(v) => fmtPct(v)} />

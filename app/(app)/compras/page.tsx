@@ -9,6 +9,7 @@ import { GraficoBarras } from "@/components/Graficos";
 import { Tarjeta } from "@/components/Indicadores";
 import { TablaDimension } from "@/components/TablaDimension";
 import { fmtM, fmtMes, fmtNum, fmtPct, fmtPesos } from "@/lib/formato";
+import { ComparacionSedesCostos } from "@/components/ComparacionSedes";
 
 const COLS = [
   { clave: "documentos", titulo: "Facturas", tipo: "num" as const },
@@ -59,6 +60,7 @@ export default function Compras() {
         <Tarjeta titulo="Familias compradas" valor={fmtNum(datos?.fam.length ?? 0)} />
         <Tarjeta titulo="Mayor familia" valor={mayor?.clave ?? "—"} exacto={mayor ? fmtPesos(Number(mayor.total)) : undefined} nota={mayor && total ? `${fmtPct(Number(mayor.total) / total)} de las compras` : undefined} />
       </div>
+      <ComparacionSedesCostos metrica="compras" />
       <div className="mb-4">
         <GraficoBarras titulo="Evolución mensual de compras" datos={(datos?.mes ?? []).map((x) => ({ etiqueta: fmtMes(x.clave), valor: Number(x.total) }))} />
       </div>
