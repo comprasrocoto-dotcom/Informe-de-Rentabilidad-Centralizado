@@ -1,35 +1,41 @@
 @import "tailwindcss";
 
 /*
-  Sistema visual del Informe de Rentabilidad
-  - Tinta (#14213d): menú lateral y títulos
-  - Fondo (#f4f6f8): gris frío, deja respirar las tablas
-  - Verde bosque (#1f6f5c): acciones y datos principales (dinero, rentabilidad)
-  - Ámbar tostado (#b54708): solo para alertas de costo
+  Sistema visual del Informe de Rentabilidad — paleta del ERP de la empresa
+  - Negro (#000000): riel de íconos del menú
+  - Carbón (#333333): barra superior
+  - Azul (#1976d2): botones, títulos, pestaña activa y datos principales
+  - Azul claro (#bbdefb / #e3f2fd): cabeceras de tabla y filas destacadas
+  - Rojo (#d32f2f): solo alertas de costo
 */
 @theme {
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --color-tinta: #14213d;
-  --color-tinta-2: #24345a;
-  --color-fondo: #f4f6f8;
-  --color-linea: #e3e7ec;
-  --color-linea-suave: #eef1f4;
-  --color-texto: #1d2433;
-  --color-texto-2: #5a6475;
-  --color-texto-3: #8a93a3;
-  --color-marca: #1f6f5c;
-  --color-marca-hover: #185a4a;
-  --color-marca-suave: #e8f3ef;
-  --color-alerta: #b54708;
-  --color-alerta-suave: #fdf3e7;
-  --color-bien: #17805f;
+  --font-sans: "Roboto", ui-sans-serif, system-ui, sans-serif;
+  --color-negro: #000000;
+  --color-carbon: #333333;
+  --color-tinta: #1565c0;
+  --color-tinta-2: #0d47a1;
+  --color-fondo: #f7f8fa;
+  --color-linea: #e0e0e0;
+  --color-linea-suave: #eeeeee;
+  --color-texto: #212121;
+  --color-texto-2: #5f6368;
+  --color-texto-3: #8a9099;
+  --color-marca: #1976d2;
+  --color-marca-hover: #1565c0;
+  --color-marca-suave: #e3f2fd;
+  --color-cabecera: #bbdefb;
+  --color-celeste: #64b5f6;
+  --color-alerta: #d32f2f;
+  --color-alerta-suave: #fdecea;
+  --color-bien: #2e7d32;
+  --color-acento: #e11421;
 }
 
 :root {
-  --series-1: #17805f;
-  --grid: #e9edf1;
-  --text-secondary: #5a6475;
-  --alerta: #b54708;
+  --series-1: #1976d2;
+  --grid: #e8eaed;
+  --text-secondary: #5f6368;
+  --alerta: #d32f2f;
 }
 
 html {
@@ -50,33 +56,32 @@ body {
 }
 
 .tarjeta {
-  @apply rounded-lg border border-linea bg-white p-4;
+  @apply rounded border border-linea bg-white p-4;
 }
 
-/* Tablas compactas tipo libro contable */
+/* Tablas al estilo del ERP: cabecera azul claro, filas compactas */
 .tabla {
   @apply w-full border-separate border-spacing-0 text-[13px];
 }
 .tabla th {
-  @apply sticky top-0 z-10 border-b border-linea bg-[#f8fafb] px-3 py-2 text-left text-xs font-medium whitespace-nowrap text-texto-2;
+  @apply sticky top-0 z-10 bg-cabecera px-3 py-2 text-left text-[13px] font-medium whitespace-nowrap text-texto;
 }
 .tabla td {
   @apply border-b border-linea-suave px-3 py-[7px] whitespace-nowrap;
 }
 .tabla tbody tr:hover td {
-  @apply bg-[#f7faf9];
+  @apply bg-[#f1f8fe];
 }
 .tabla td.num,
 .tabla th.num {
   @apply text-right tabular-nums;
 }
 .tabla tr.grupo td {
-  @apply border-b border-linea bg-[#f3f6f5] font-semibold text-tinta;
+  @apply border-b border-linea bg-marca-suave font-medium text-tinta-2;
 }
 .tabla tr.grupo td:first-child {
   box-shadow: inset 3px 0 0 var(--color-marca);
 }
-/* Primera columna fija al desplazar horizontalmente */
 .tabla.col-fija th:first-child,
 .tabla.col-fija td:first-child {
   @apply sticky left-0;
@@ -88,23 +93,23 @@ body {
   @apply z-[5] bg-white;
 }
 .tabla.col-fija tr.grupo td:first-child {
-  @apply bg-[#f3f6f5];
+  @apply bg-marca-suave;
 }
 
 .campo {
-  @apply h-9 rounded-md border border-linea bg-white px-2.5 text-sm text-texto transition-colors focus:border-marca focus:ring-2 focus:ring-marca/15 focus:outline-none;
+  @apply h-9 rounded-sm border border-linea bg-white px-2.5 text-sm text-texto transition-colors focus:border-marca focus:ring-2 focus:ring-marca/15 focus:outline-none;
 }
 select.campo {
   @apply pr-8;
 }
 .etiqueta {
-  @apply mb-1 block text-xs font-medium text-texto-2;
+  @apply mb-1 block text-xs text-texto-2;
 }
 .boton {
-  @apply inline-flex h-9 items-center justify-center gap-2 rounded-md bg-marca px-4 text-sm font-medium text-white transition-colors hover:bg-marca-hover disabled:cursor-not-allowed disabled:opacity-50;
+  @apply inline-flex h-9 items-center justify-center gap-2 rounded-sm bg-marca px-4 text-sm font-medium text-white transition-colors hover:bg-marca-hover disabled:cursor-not-allowed disabled:opacity-50;
 }
 .boton-sec {
-  @apply inline-flex h-9 items-center justify-center gap-2 rounded-md border border-linea bg-white px-4 text-sm font-medium text-texto transition-colors hover:bg-fondo disabled:opacity-50;
+  @apply inline-flex h-9 items-center justify-center gap-2 rounded-sm border border-marca bg-white px-4 text-sm font-medium text-marca transition-colors hover:bg-marca-suave disabled:opacity-50;
 }
 
 @media (prefers-reduced-motion: reduce) {

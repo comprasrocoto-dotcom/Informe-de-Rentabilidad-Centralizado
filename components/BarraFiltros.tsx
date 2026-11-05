@@ -47,7 +47,7 @@ export function BarraFiltros({ sinFechas = false, sinSede = false, sinCC = false
     "personalizado";
 
   return (
-    <div className="sticky top-[52px] z-20 -mx-4 mb-5 flex flex-wrap items-end gap-3 border-y border-linea bg-fondo/95 px-4 py-3 backdrop-blur lg:top-0 lg:-mx-8 lg:px-8">
+    <div className="sticky top-9 z-20 -mx-4 mb-5 flex flex-wrap items-end gap-3 border-b-2 border-celeste bg-white px-4 py-3 lg:-mx-8 lg:px-8">
       {variasMarcas && (
         <label>
           <span className="etiqueta">Marca</span>
@@ -100,7 +100,7 @@ export function BarraFiltros({ sinFechas = false, sinSede = false, sinCC = false
           <label>
             <span className="etiqueta">Mes</span>
             <select className="campo w-44" value={valorSelect} onChange={(e) => elegirMes(e.target.value)}>
-              <option value="personalizado" disabled>Rango personalizado</option>
+              <option value="personalizado" disabled>Personalizado</option>
               {todo && <option value="todo">Todos los meses</option>}
               {meses.length >= 3 && <option value="trimestre">Últimos 3 meses</option>}
               {meses.map((m) => (

@@ -70,8 +70,8 @@ export default function LoginPage() {
 
   return (
     <main className="grid min-h-screen lg:grid-cols-[1fr_minmax(420px,520px)]">
-      <section className="relative hidden flex-col justify-between overflow-hidden bg-tinta p-12 text-white lg:flex">
-        <div className="text-sm font-medium text-white/70">Informe de Rentabilidad</div>
+      <section className="relative hidden flex-col justify-between overflow-hidden bg-carbon p-12 text-white lg:flex">
+        <div className="flex items-center gap-3 text-sm font-medium text-white/80"><span className="flex h-9 w-10 items-center justify-center rounded-sm bg-acento text-[13px] font-bold text-white">IR</span>Informe de Rentabilidad</div>
         <div className="max-w-md">
           <p className="text-[34px] leading-[1.15] font-semibold tracking-tight">
             Cuánto cuesta lo que vendes, sede por sede y mes a mes.

@@ -156,3 +156,14 @@ Nueva pestaña **Descuentos**: cuánto representan los descuentos sobre la venta
 - **% sobre ventas** = descuentos ÷ ventas totales (base neta sin IVA ni propinas).
 - **% sobre venta bruta** = descuentos ÷ (ventas + descuentos).
 - No incluye descuentos aplicados dentro del precio (por ejemplo, tarifas de personal), porque no aparecen como línea aparte.
+
+## 4 de noviembre de 2026 — Paleta del ERP, menú en riel e informe de traslados
+
+- **Paleta igual al ERP de la empresa:** riel negro, barra superior gris carbón (#333333), azul #1976d2 para botones,
+  títulos y pestaña activa, cabeceras de tabla azul claro (#bbdefb), línea celeste (#64b5f6) bajo los filtros y
+  rojo para alertas. Letra Roboto, la misma del ERP.
+- **Menú en riel de íconos** de 56 px (antes 240 px): el nombre de cada sección aparece al pasar el mouse.
+  La cuenta (correo, marcas y Cerrar sesión) está en el círculo de abajo. La barra superior muestra la sección actual.
+- **Nueva pestaña Traslados:** total trasladado, peso de los traslados en el abastecimiento de las sedes
+  (traslados ÷ traslados + compras Cocina y Bar), traslados sobre ventas, evolución mensual, y detalle por sede que
+  recibe, centro de costo, motivo, familia, artículo y tipo de documento.

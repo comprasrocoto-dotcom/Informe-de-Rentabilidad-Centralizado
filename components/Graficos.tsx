@@ -52,7 +52,7 @@ export function GraficoLinea({ datos, titulo, meta }: { datos: { etiqueta: strin
             <YAxis tick={eje} tickLine={false} axisLine={false} domain={[0, tope]} ticks={ticks} tickFormatter={(v) => `${Math.round(v * 100)}%`} width={44} />
             <Tooltip cursor={{ stroke: "var(--text-secondary)", strokeDasharray: "3 3" }} content={<CajaTooltip tipo="pct" />} />
             {meta != null && (
-              <ReferenceLine y={meta} stroke="var(--alerta)" strokeDasharray="4 4" label={{ value: `Meta ${Math.round(meta * 100)}%`, position: "insideBottomLeft", fill: "var(--alerta)", fontSize: 11 }} />
+              <ReferenceLine y={meta} stroke="var(--alerta)" strokeDasharray="4 4" label={{ value: `Meta ${Math.round(meta * 100)}%`, position: "insideBottomRight", fill: "var(--alerta)", fontSize: 11 }} />
             )}
             <Line type="monotone" dataKey="valor" stroke="var(--series-1)" strokeWidth={2} dot={{ r: 4, fill: "var(--series-1)", stroke: "#fff", strokeWidth: 2 }} connectNulls={false} />
           </LineChart>
@@ -79,7 +79,7 @@ export function GraficoPctCentros({ datos, titulo, meta }: { datos: { etiqueta: 
             <Tooltip cursor={{ fill: "rgba(0,0,0,0.04)" }} formatter={(v) => fmtPct(Number(v))} />
             <Legend iconType="square" iconSize={10} wrapperStyle={{ fontSize: 12 }} />
             <ReferenceLine y={meta} stroke="var(--alerta)" strokeDasharray="4 4" />
-            <Bar dataKey="Cocina" fill="#2a78d6" radius={[4, 4, 0, 0]} maxBarSize={28} />
+            <Bar dataKey="Cocina" fill="#1976d2" radius={[4, 4, 0, 0]} maxBarSize={28} />
             <Bar dataKey="Bar" fill="#eb6834" radius={[4, 4, 0, 0]} maxBarSize={28} />
             <Bar dataKey="Global" fill="#1baf7a" radius={[4, 4, 0, 0]} maxBarSize={28} />
           </BarChart>
@@ -102,7 +102,7 @@ export function GraficoDosBarras({ datos, titulo, nombres }: { datos: { etiqueta
             <YAxis tick={eje} tickLine={false} axisLine={false} tickFormatter={fmtMillones} width={56} />
             <Tooltip cursor={{ fill: "rgba(0,0,0,0.04)" }} formatter={(v) => fmtPesos(Number(v))} />
             <Legend iconType="square" iconSize={10} wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="a" name={nombres[0]} fill="#2a78d6" radius={[4, 4, 0, 0]} maxBarSize={32} />
+            <Bar dataKey="a" name={nombres[0]} fill="#1976d2" radius={[4, 4, 0, 0]} maxBarSize={32} />
             <Bar dataKey="b" name={nombres[1]} fill="#eb6834" radius={[4, 4, 0, 0]} maxBarSize={32} />
           </BarChart>
         </ResponsiveContainer>

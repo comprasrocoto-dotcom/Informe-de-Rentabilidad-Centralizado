@@ -17,7 +17,7 @@ export function TablaDimension({
   ccDesdeFiltro?: boolean;
   /** total contra el que se calcula la participación (si no, la suma de las filas mostradas) */
   totalRef?: number | null;
-  rpc: "ventas_por" | "compras_por";
+  rpc: "ventas_por" | "compras_por" | "traslados_por";
   dim: string;
   titulo: string;
   columnas: Col[];

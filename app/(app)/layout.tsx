@@ -40,7 +40,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
   return (
     <ProveedorApp perfil={perfil}>
       <Menu />
-      <main className="min-w-0 px-4 py-6 lg:ml-60 lg:px-8 lg:py-8">
+      <main className="ml-14 min-w-0 px-4 pt-[52px] pb-8 lg:px-8 lg:pt-[60px]">
         <div className="mx-auto max-w-[1440px]">{children}</div>
       </main>
     </ProveedorApp>
