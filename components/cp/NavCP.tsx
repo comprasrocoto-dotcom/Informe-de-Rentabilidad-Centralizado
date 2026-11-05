@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCP } from "./ContextoCP";
+import { useApp } from "@/components/Contexto";
 import { etiquetaMes } from "@/lib/cp/motorCP";
 
 export const PESTANAS_CP = [
@@ -20,10 +21,13 @@ export const PESTANAS_CP = [
 export function NavCP({ sinFiltros = false }: { sinFiltros?: boolean }) {
   const ruta = usePathname();
   const { filtro, setFiltro, meses } = useCP();
+  const { perfil } = useApp();
+  // Subir o borrar datos del CP es solo del administrador; las marcas lo consultan
+  const pestanas = perfil.rol === "admin" ? PESTANAS_CP : PESTANAS_CP.filter((p) => p.href !== "/cp/cargar");
   return (
     <div className="sticky top-9 z-20 -mx-4 mb-5 bg-white lg:-mx-8">
       <nav className="flex overflow-x-auto border-b-2 border-celeste px-4 lg:px-8" aria-label="Pestañas del Centro de producción">
-        {PESTANAS_CP.map((p) => {
+        {pestanas.map((p) => {
           const on = p.href === "/cp" ? ruta === "/cp" : ruta.startsWith(p.href);
           return (
             <Link

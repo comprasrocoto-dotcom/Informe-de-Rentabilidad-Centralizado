@@ -3,7 +3,8 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 
-export type Perfil = { email: string; rol: "admin" | "marca"; marcas: number[] };
+// verCP: el Centro de producción lo ven el admin y quien tenga 123 WOK o ROCOTO (marcas que comparten el CP)
+export type Perfil = { email: string; rol: "admin" | "marca"; marcas: number[]; verCP: boolean };
 export type Marca = { id: number; nombre: string; meta_costo: number };
 export type Sede = { id: number; marca_id: number; nombre: string; tipo: "punto_venta" | "produccion" };
 

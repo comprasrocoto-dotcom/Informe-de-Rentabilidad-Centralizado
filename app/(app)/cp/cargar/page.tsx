@@ -21,7 +21,7 @@ const TABLA: Record<HojaCP["tipo"], string> = {
 type Carga = { id: number; archivo: string; hoja: string; tipo: HojaCP["tipo"]; filas_leidas: number; filas_guardadas: number | null; desde: string | null; hasta: string | null; created_at: string };
 
 export default function CargarCP() {
-  const { sb } = useApp();
+  const { sb, perfil } = useApp();
   const { recargar } = useCP();
   const [archivo, setArchivo] = useState<string>("");
   const [hojas, setHojas] = useState<HojaCP[]>([]);
@@ -75,6 +75,7 @@ export default function CargarCP() {
     await Promise.all([recargar(), cargarHistorial()]);
   };
 
+  if (perfil.rol !== "admin") return <p className="text-sm text-texto-2">Solo el administrador puede subir o borrar datos del Centro de producción.</p>;
   return (
     <div>
       <Encabezado titulo="Cargar cierre del CP" descripcion="Sube el Excel de cierre de mes (Base de datos CP). Cada hoja reemplaza los meses que trae, así que volver a subir un mes lo corrige sin duplicar." />

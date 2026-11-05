@@ -40,7 +40,7 @@ export function Menu() {
   const [cuenta, setCuenta] = useState(false);
   const refCuenta = useRef<HTMLDivElement>(null);
   const misMarcas = perfil.rol === "admin" ? marcas : marcas.filter((m) => perfil.marcas.includes(m.id));
-  const enlaces = perfil.rol === "admin" ? [...ENLACES, CP, ADMIN] : ENLACES;
+  const enlaces = [...ENLACES, ...(perfil.verCP ? [CP] : []), ...(perfil.rol === "admin" ? [ADMIN] : [])];
   const activo = (href: string) => (href === "/" ? ruta === "/" : ruta === href || ruta.startsWith(href + "/"));
   const actual = enlaces.find((e) => activo(e.href));
   const enCP = ruta === "/cp" || ruta.startsWith("/cp/");

@@ -45,7 +45,8 @@ function Informes() {
 }
 
 export default function Liquidacion() {
-  const { sb } = useApp();
+  const { sb, perfil } = useApp();
+  const esAdmin = perfil.rol === "admin";
   const { datos: d, filtro, conv, recargar, cargando } = useCP();
   const [guardando, setGuardando] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -105,13 +106,13 @@ export default function Liquidacion() {
       <Seccion titulo={`% de kilos preparados · ${etiquetaMes(mes)}`} nota={p.origen === "manual" ? "Anulado manualmente" : "Usando el automático"}>
         <div className="space-y-3 p-4 text-sm">
           <BarrasMarca sa={kg.kgSA} ro={kg.kgRO} formato={fmtKg} pct={[kg.pctSA, kg.pctRO]} />
-          <form className="flex flex-wrap items-end gap-3" onSubmit={(e) => { e.preventDefault(); const v = Number(new FormData(e.currentTarget).get("pct")); if (!isNaN(v)) guardarPct(v); }}>
+          {esAdmin && <form className="flex flex-wrap items-end gap-3" onSubmit={(e) => { e.preventDefault(); const v = Number(new FormData(e.currentTarget).get("pct")); if (!isNaN(v)) guardarPct(v); }}>
             <label><span className="etiqueta">% San Agustín</span>
               <input name="pct" key={`${mes}-${p.sa}`} type="number" min={0} max={100} step={0.01} defaultValue={p.sa ?? 50} className="campo w-28 text-right" />
             </label>
             <button className="boton" disabled={guardando}>Guardar % manual</button>
             {p.origen === "manual" && <button type="button" className="boton-sec" disabled={guardando} onClick={quitarManual}>Quitar el manual y volver al automático</button>}
-          </form>
+          </form>}
           <p className="text-xs text-texto-2">
             {kg.marcaSinDatos ? <><b>{kg.marcaSinDatos} no tiene fabricación en {etiquetaMes(mes)}</b>: no hay % automático; lo que ingreses queda como manual.</>
               : kg.totalKg ? <>El automático es San Agustín {kg.pctSA}% / Rocoto {kg.pctRO}%, calculado sobre {fmtNum(kg.totalFilas - kg.sinConvN)} de {fmtNum(kg.totalFilas)} filas convertibles a kilos. Solo cámbialo si quieres anularlo para este mes. El % manual queda guardado para todos los usuarios.</>

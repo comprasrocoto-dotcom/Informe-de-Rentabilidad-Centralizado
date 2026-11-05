@@ -17,8 +17,9 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
   const { data: am } = fila
     ? await supabase.from("accesos_marcas").select("marca_id").eq("email", fila.email)
     : { data: [] };
+  const { data: verCP } = fila ? await supabase.rpc("puede_ver_cp") : { data: false };
   const perfil: Perfil | null = fila
-    ? { email: fila.email, rol: fila.rol, marcas: (am ?? []).map((x) => x.marca_id as number) }
+    ? { email: fila.email, rol: fila.rol, marcas: (am ?? []).map((x) => x.marca_id as number), verCP: verCP === true }
     : null;
 
   if (!perfil || (perfil.rol !== "admin" && perfil.marcas.length === 0)) {

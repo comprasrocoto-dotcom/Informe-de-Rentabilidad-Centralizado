@@ -201,3 +201,13 @@ lógica de la web "Cierre de mes CP". Marcas: **San Agustín** (almacén CENTRO 
     completas sin barras de desplazamiento, hoja horizontal). Se elige "Guardar como PDF".
   - En tablas con "Mostrar más" el Excel lleva lo que esté desplegado; Compras del CP tiene además su propio botón
     con todas las líneas.
+
+## 4 de noviembre de 2026 — El CP lo ven 123 WOK y ROCOTO
+
+El Centro de producción es un gasto compartido entre 123 WOK (San Agustín) y ROCOTO, así que cualquier cuenta con
+acceso a alguna de esas dos marcas ve el CP completo, con la información de ambas marcas.
+
+- Función `puede_ver_cp()`: admin, o cuenta con 123 WOK o ROCOTO. Cada tabla `cp_*` tiene una regla de solo lectura
+  con esta función; escribir sigue siendo solo del admin.
+- Las marcas no ven la pestaña "Cargar archivo" ni pueden cambiar el % manual de la Liquidación (lo ven, no lo editan).
+- Hoy: admi.inversionesrocoto@hotmail.com, tatiana123wok@gmail.com y lopezluzmary075@gmail.com ven el CP.
