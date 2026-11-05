@@ -283,3 +283,22 @@ En **Cargar datos** hay dos formas de bajar lo que hay guardado (`lib/descargaBa
 
 Respeta el acceso por marca: cada usuario solo baja lo de sus marcas. Si una tabla pasa de 1.000.000 de filas,
 pide CSV o un rango más corto (Excel no abre más).
+
+## 5 de noviembre de 2026 — Subir sumando (sin reemplazar) y descargar para volver a subir
+
+**Cómo guardar** (nuevo paso en Cargar datos, `guardarHoja(..., modo)`):
+- **Agregar a lo que hay (por defecto):** lo nuevo se suma. Solo se borran, antes de insertar, las filas de los
+  **días exactos por sede** que trae el archivo; los demás días y meses quedan. Así subir otro mes o la segunda
+  quincena no borra lo anterior, y volver a subir el mismo día no lo duplica. Las facturas de venta solo se
+  reemplazan en los días para los que el archivo trae número de documento (si no lo trae, se conservan).
+  En la carta: se agregan o actualizan los artículos del archivo y el resto se conserva.
+- **Reemplazar meses completos:** el comportamiento anterior (meses completos por sede; la carta completa).
+
+**Descargar para volver a subir** (formato por defecto en "Descargar base de datos"): Excel con los mismos
+encabezados que reconoce el importador (Almacén, Fecha, Serie / Número, Proveedor, CC, Artículo, Uds.C,
+Total Neto…; ventas con Establecimiento, Fecha Doc, Base, Neto…) y hojas llamadas Compras, Ventas, Inventarios,
+Traslados y Rentabilidad. Se le pueden agregar filas y subirlo de nuevo sin tocar columnas. Probado ida y vuelta
+con filas reales: el importador lee exactamente los mismos valores.
+
+Además, al subir, si el nombre de la sede del archivo coincide con el nombre de una sede existente se reutiliza
+esa sede (antes solo se buscaba por alias y podía crear una sede repetida).

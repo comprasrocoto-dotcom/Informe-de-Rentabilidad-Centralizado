@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useApp } from "@/components/Contexto";
 import { DescargarBase, descargarCarga } from "@/components/DescargarBase";
 import { GUIA_COLUMNAS, type HojaDisponible, type ResultadoHoja, type TipoHoja } from "@/lib/importador";
-import { guardarHoja, revisarSedes, type EstadoSede } from "@/lib/subida";
+import { guardarHoja, revisarSedes, type EstadoSede, type ModoGuardado } from "@/lib/subida";
 import { fmtNum } from "@/lib/formato";
 
 type Lectura = { res?: ResultadoHoja; error?: string; sedes?: EstadoSede[] };
@@ -48,6 +48,7 @@ export default function Cargar() {
   const [borrando, setBorrando] = useState<number | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [mesHistorial, setMesHistorial] = useState("");
+  const [modo, setModo] = useState<ModoGuardado>("agregar");
   const worker = useRef<Worker | null>(null);
   const pendientes = useRef(new Map<number, (v: { ok: boolean; error?: string; hojas?: HojaDisponible[]; res?: ResultadoHoja }) => void>());
   const contador = useRef(0);
@@ -147,6 +148,7 @@ export default function Cargar() {
       try {
         await guardarHoja(sb, marcaId, archivo.name, l.res!, (texto, fraccion) =>
           setAvances((a) => ({ ...a, [hoja]: { texto, fraccion, estado: "guardando" } })),
+          modo,
         );
         setAvances((a) => ({ ...a, [hoja]: { texto: "Guardado", fraccion: 1, estado: "ok" } }));
       } catch (e) {
@@ -218,7 +220,7 @@ export default function Cargar() {
         <h1 className="text-[22px] font-semibold tracking-tight text-tinta">Cargar datos</h1>
         <p className="mt-1 max-w-3xl text-sm text-texto-2">
           Elige qué información vas a subir y luego el archivo: puede ser <b>archivo plano</b> (.csv o .txt, separado por punto y coma, coma o tabulación) o Excel.
-          Al guardar se <b>reemplazan</b> los datos de las mismas sedes y fechas que trae el archivo, así que puedes volver a subir un mes para corregirlo sin duplicar.
+          Por defecto lo nuevo se <b>suma</b> a lo que ya hay: solo se reemplazan los días exactos que trae el archivo, así que subir otro mes no borra los anteriores y volver a subir un día no lo duplica.
         </p>
       </div>
 
@@ -250,6 +252,27 @@ export default function Cargar() {
             ))}
           </div>
         </div>
+
+        {eleccion && (
+          <div>
+            <div className="mb-1 text-xs text-texto-2">Cómo guardar</div>
+            <div className="grid gap-2 md:grid-cols-2" role="radiogroup" aria-label="Cómo guardar">
+              {([
+                ["agregar", "Agregar a lo que hay (recomendado)", eleccion === "rentabilidad"
+                  ? "Agrega o actualiza los artículos que trae el archivo. Los demás artículos de la carta se conservan."
+                  : "Suma la información nueva. Solo se reemplazan los días exactos (por sede) que trae el archivo: los otros días y meses quedan como están."],
+                ["meses", "Reemplazar meses completos", eleccion === "rentabilidad"
+                  ? "Borra toda la carta de la marca y deja solo la del archivo."
+                  : "Borra los meses completos que toca el archivo (en esas sedes) y deja solo lo del archivo. Úsalo para corregir un mes entero."],
+              ] as [ModoGuardado, string, string][]).map(([v, t, d]) => (
+                <label key={v} className={`flex cursor-pointer gap-2 rounded-lg border p-3 text-sm ${modo === v ? "border-marca bg-marca-suave" : "border-linea bg-white hover:bg-fondo"}`}>
+                  <input type="radio" name="modo" className="mt-0.5" checked={modo === v} disabled={!!ocupado} onChange={() => setModo(v)} />
+                  <span><b className="block font-medium">{t}</b><span className="text-xs text-texto-2">{d}</span></span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
 
         {eleccion && eleccion !== "libro" && (
           <div className="rounded-md bg-fondo p-3 text-xs text-texto-2">

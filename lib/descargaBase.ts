@@ -15,6 +15,15 @@ export const TABLAS: Record<TablaBase, { nombre: string; hoja: string; fecha: bo
   rentabilidad_items: { nombre: "Rentabilidad de carta", hoja: "Carta", fecha: false, cols: [["marca", "Marca"], ["grupo", "Grupo"], ["tarifa", "Tarifa"], ["familia", "Familia"], ["centro_costos", "Centro de costos"], ["referencia", "Referencia"], ["articulo", "Artículo"], ["precio", "Precio"], ["impuesto", "Impuesto"], ["base", "Base"], ["coste", "Coste ficha"]] },
 };
 
+// Mismos encabezados que reconoce el importador (GUIA_COLUMNAS): el archivo se puede volver a subir tal cual
+export const PARA_SUBIR: Partial<Record<TablaBase, { hoja: string; cols: Col[] }>> = {
+  compras: { hoja: "Compras", cols: [["sede", "Almacén"], ["fecha", "Fecha"], ["serie", "Serie / Número"], ["tipo_documento", "Tipo Documento"], ["serie_origen", "Serie/Número Origen"], ["nif", "Nif"], ["proveedor", "Proveedor"], ["familia", "Familia"], ["centro_costos", "CC"], ["articulo", "Artículo"], ["subarticulo", "Subartículo"], ["unidades", "Uds.C"], ["valor_unitario", "Valor Unitario Con Impuesto"], ["total", "Total Neto"]] },
+  ventas: { hoja: "Ventas", cols: [["sede", "Establecimiento"], ["fecha", "Fecha Doc"], ["tarifa", "Tarifa Venta"], ["tipo_documento", "Tipo Documento"], ["familia", "Familia"], ["centro_costos", "Centro de Costos"], ["articulo", "Artículo"], ["unidades", "Uds.V"], ["subtotal", "Subtotal"], ["descuento", "Importe descuento"], ["base", "Base"], ["impuestos", "Impuestos"], ["neto", "Neto"]] },
+  inventarios: { hoja: "Inventarios", cols: [["sede", "Almacén"], ["fecha", "Fecha Doc"], ["serie", "Serie / Número"], ["familia", "Familia"], ["subfamilia", "Subfamilia"], ["centro_costos", "Centro de Costos"], ["proveedor", "Proveedor"], ["codigo", "Cód. Barras"], ["articulo", "Artículo"], ["subarticulo", "Subartículo"], ["costo_unitario", "Coste Línea"], ["stock_fecha", "Stock a Fecha"], ["variacion", "Variación Stock"], ["stock_inventario", "Stock Inventario"], ["total", "Total"]] },
+  traslados: { hoja: "Traslados", cols: [["sede", "Almacén"], ["fecha", "Fecha Doc"], ["serie", "Serie / Número"], ["tipo_documento", "Tipo Documento"], ["motivo", "Motivo Traspaso"], ["familia", "Familia"], ["centro_costos", "Centro de Costos"], ["articulo", "Artículo"], ["subarticulo", "Subartículo"], ["variacion", "Variación Stock"], ["costo_unitario", "Coste Unitario"], ["total", "Coste Variación"]] },
+  rentabilidad_items: { hoja: "Rentabilidad", cols: [["grupo", "Grupo Almacén"], ["tarifa", "Tarifa Venta"], ["familia", "Familia"], ["centro_costos", "Centro de Costos"], ["referencia", "Referencia"], ["articulo", "Artículo"], ["precio", "Precio"], ["impuesto", "Impuesto"], ["base", "Base"], ["coste", "Coste"]] },
+};
+
 export type FiltroBase = { marcaId?: number | null; sedeId?: number | null; desde?: string; hasta?: string; cargaId?: number };
 type Nombres = { marca: (id: number) => string; sede: (id: number) => string };
 
@@ -35,9 +44,9 @@ export async function contar(sb: SupabaseClient, t: TablaBase, f: FiltroBase) {
 }
 
 /** Trae todas las filas de una tabla, ya con nombre de marca y sede, en el orden de las columnas */
-export async function traer(sb: SupabaseClient, t: TablaBase, f: FiltroBase, n: Nombres, progreso?: (leidas: number) => void) {
-  const def = TABLAS[t];
-  const campos = ["id", "marca_id", ...(def.fecha ? ["sede_id"] : []), ...def.cols.map((c) => c[0]).filter((c) => c !== "marca" && c !== "sede")];
+export async function traer(sb: SupabaseClient, t: TablaBase, f: FiltroBase, n: Nombres, progreso?: (leidas: number) => void, paraSubir = false) {
+  const def = paraSubir && PARA_SUBIR[t] ? { ...TABLAS[t], cols: PARA_SUBIR[t]!.cols } : TABLAS[t];
+  const campos = [...new Set(["id", "marca_id", ...(def.fecha ? ["sede_id"] : []), ...def.cols.map((c) => c[0]).filter((c) => c !== "marca" && c !== "sede")])];
   const filas: Record<string, unknown>[] = [];
   const PAG = 1000;
   for (let desde = 0; ; desde += PAG) {
@@ -47,7 +56,11 @@ export async function traer(sb: SupabaseClient, t: TablaBase, f: FiltroBase, n: 
     for (const r of lote) {
       const o: Record<string, unknown> = {};
       for (const [c, titulo] of def.cols) {
-        o[titulo] = c === "marca" ? n.marca(r.marca_id as number) : c === "sede" ? (r.sede_id ? n.sede(r.sede_id as number) : "") : c === "es_propina" ? (r[c] ? "Sí" : "No") : r[c] ?? null;
+        o[titulo] = c === "marca" ? n.marca(r.marca_id as number) : c === "sede" ? (r.sede_id ? n.sede(r.sede_id as number) : "")
+          : c === "es_propina" ? (r[c] ? "Sí" : "No")
+          // Para volver a subir, la fecha va como fecha de Excel (se lee igual que en el archivo original)
+          : c === "fecha" && paraSubir && typeof r[c] === "string" ? (() => { const [y, m, d] = (r[c] as string).split("-").map(Number); return new Date(y, m - 1, d); })()
+          : r[c] ?? null;
       }
       filas.push(o);
     }
@@ -75,7 +88,7 @@ export async function guardar(hojas: { nombre: string; filas: Record<string, unk
   }
   const wb = XLSX.utils.book_new();
   for (const h of hojas) {
-    const ws = XLSX.utils.json_to_sheet(h.filas.length ? h.filas : [{ Aviso: "Sin datos para este filtro" }]);
+    const ws = XLSX.utils.json_to_sheet(h.filas.length ? h.filas : [{ Aviso: "Sin datos para este filtro" }], { dateNF: "dd/mm/yyyy" });
     const cols = Object.keys(h.filas[0] ?? { Aviso: "" });
     ws["!cols"] = cols.map((c) => ({ wch: Math.min(40, Math.max(10, c.length + 2)) }));
     XLSX.utils.book_append_sheet(wb, ws, h.nombre.slice(0, 31));

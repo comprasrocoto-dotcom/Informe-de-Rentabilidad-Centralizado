@@ -1,7 +1,8 @@
-// Guarda en Supabase lo que leyó el importador.
-// Regla: al cargar una hoja se REEMPLAZAN los datos de esa marca, de esas sedes y de ese rango de fechas
-// (así volver a subir el mismo mes corrige el informe en vez de duplicarlo).
-// La rentabilidad de carta se reemplaza completa para la marca.
+// Guarda en Supabase lo que leyó el importador. Dos modos:
+//  · "agregar" (por defecto): SUMA lo nuevo a lo que hay. Solo se reemplazan los días exactos (por sede) que trae
+//    el archivo, así subir otro mes, o la segunda quincena, no borra lo anterior, y volver a subir un día no lo duplica.
+//    En la carta se agregan o actualizan los artículos del archivo y los demás quedan.
+//  · "meses": reemplaza los meses completos (por sede) que toca el archivo. En la carta, la reemplaza completa.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { normalizarSede, type ResultadoHoja } from "./importador";
 
@@ -12,6 +13,8 @@ const TABLA = {
   traslados: "traslados",
   rentabilidad: "rentabilidad_items",
 } as const;
+
+export type ModoGuardado = "agregar" | "meses";
 
 export type EstadoSede = { nombreArchivo: string; sedeId: number | null; sedeNombre: string | null };
 
@@ -33,8 +36,18 @@ async function asegurarSedes(sb: SupabaseClient, marcaId: number, nombres: strin
   const { data: alias, error } = await sb.from("sede_alias").select("alias,sede_id").eq("marca_id", marcaId);
   if (error) throw error;
   const mapa = new Map((alias ?? []).map((a) => [a.alias as string, a.sede_id as number]));
+  const { data: existentes } = await sb.from("sedes").select("id,nombre").eq("marca_id", marcaId);
+  const porNombre = new Map((existentes ?? []).map((x) => [normalizarSede(x.nombre as string), x.id as number]));
   for (const n of nombres.map(normalizarSede)) {
     if (mapa.has(n)) continue;
+    // Si el archivo trae el nombre con que la sede ya existe (p. ej. una base descargada de la web), se reutiliza
+    const yaExiste = porNombre.get(n);
+    if (yaExiste) {
+      const { error: ea } = await sb.from("sede_alias").insert({ marca_id: marcaId, alias: n, sede_id: yaExiste });
+      if (ea) throw ea;
+      mapa.set(n, yaExiste);
+      continue;
+    }
     // Sede nueva: se crea con ese nombre y el administrador puede luego unirla a otra.
     const { error: e1 } = await sb.from("sedes").upsert({ marca_id: marcaId, nombre: n }, { onConflict: "marca_id,nombre", ignoreDuplicates: true });
     if (e1) throw e1;
@@ -67,6 +80,7 @@ export async function guardarHoja(
   archivo: string,
   res: ResultadoHoja,
   progreso: (texto: string, fraccion: number) => void,
+  modo: ModoGuardado = "agregar",
 ): Promise<{ cargaId: number; guardadas: number }> {
   const tabla = TABLA[res.tipo];
   progreso("Preparando sedes…", 0);
@@ -81,13 +95,47 @@ export async function guardarHoja(
   if (eC) throw eC;
   const cargaId = carga.id as number;
 
-  // 1) Borrar lo anterior del mismo período
-  if (res.tipo === "rentabilidad") {
+  // 1) Borrar lo anterior que este archivo reemplaza
+  if (res.tipo === "rentabilidad" && modo === "meses") {
     progreso("Reemplazando la carta anterior…", 0.02);
     const { error } = await sb.from(tabla).delete().eq("marca_id", marcaId).neq("carga_id", cargaId);
     if (error) throw error;
     const { error: e2 } = await sb.from(tabla).delete().eq("marca_id", marcaId).is("carga_id", null);
     if (e2) throw e2;
+  } else if (res.tipo === "rentabilidad") {
+    // Agregar: se actualizan solo los artículos que trae el archivo
+    const arts = [...new Set(res.filas.map((f) => (f as { articulo?: string }).articulo).filter((a): a is string => !!a))];
+    for (let i = 0; i < arts.length; i += 150) {
+      progreso("Actualizando artículos de la carta…", 0.02 + (0.08 * i) / Math.max(1, arts.length));
+      const { error } = await sb.from(tabla).delete().eq("marca_id", marcaId).in("articulo", arts.slice(i, i + 150));
+      if (error) throw error;
+    }
+  } else if (modo === "agregar") {
+    // Días exactos por sede que trae el archivo
+    const diasDe = (filas: { sede?: string; fecha?: string | null }[]) => {
+      const m = new Map<number, Set<string>>();
+      for (const f of filas) {
+        const id = sedes.get(normalizarSede(f.sede ?? ""));
+        if (!id || !f.fecha) continue;
+        (m.get(id) ?? m.set(id, new Set()).get(id)!).add(f.fecha);
+      }
+      return m;
+    };
+    const borrarDias = async (t: string, dias: Map<number, Set<string>>, texto: string) => {
+      const pares = [...dias.entries()];
+      for (const [k, [sedeId, set]] of pares.entries()) {
+        const lista = [...set].sort();
+        for (let i = 0; i < lista.length; i += 60) {
+          progreso(`${texto} (${lista[i].slice(0, 7)})…`, 0.02 + (0.08 * k) / Math.max(1, pares.length));
+          const { error } = await sb.from(t).delete().eq("marca_id", marcaId).eq("sede_id", sedeId).in("fecha", lista.slice(i, i + 60));
+          if (error) throw error;
+        }
+      }
+    };
+    await borrarDias(tabla, diasDe(res.filas as { sede?: string; fecha?: string }[]), "Reemplazando solo los días que trae el archivo");
+    // Facturas: solo se reemplazan los días para los que el archivo trae facturas (si no trae número de
+    // documento, se conservan las que había y no se pierde el ticket promedio)
+    if (res.tipo === "ventas" && res.facturas?.length) await borrarDias("ventas_facturas", diasDe(res.facturas), "Reemplazando facturas de esos días");
   } else if (res.desde && res.hasta && sedeIds.length) {
     const ventanas = ventanasMensuales(res.desde, res.hasta);
     for (let i = 0; i < ventanas.length; i++) {
