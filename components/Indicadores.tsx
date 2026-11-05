@@ -1,16 +1,11 @@
+import { TarjetaColor, TEMAS } from "./TarjetaColor";
 import { fmtFecha, fmtMes, fmtPct, fmtPesos } from "@/lib/formato";
 import type { Cifras } from "@/lib/rentabilidad";
 
-/** Tarjeta de indicador: valor principal (resumido) y, debajo, el valor exacto y una nota. */
+/** Tarjeta de indicador: valor principal (resumido) y, debajo, el valor exacto y una nota.
+ *  El color sale del título (ver TarjetaColor); "tono" lo fuerza a rojo (alerta) o verde (bien). */
 export function Tarjeta({ titulo, valor, exacto, nota, tono }: { titulo: string; valor: string; exacto?: string; nota?: React.ReactNode; tono?: "bien" | "alerta" }) {
-  return (
-    <div className={`tarjeta flex flex-col ${tono === "alerta" ? "border-l-4 border-l-alerta" : tono === "bien" ? "border-l-4 border-l-bien" : ""}`}>
-      <div className="text-xs font-medium text-texto-2">{titulo}</div>
-      <div className={`mt-1.5 text-xl font-semibold tabular-nums ${tono === "alerta" ? "text-alerta" : tono === "bien" ? "text-bien" : "text-tinta"}`}>{valor}</div>
-      {exacto && <div className="text-xs text-texto-2 tabular-nums">{exacto}</div>}
-      {nota && <div className="mt-1 text-[11px] leading-snug text-texto-3">{nota}</div>}
-    </div>
-  );
+  return <TarjetaColor titulo={titulo} valor={valor} exacto={exacto} nota={nota} tema={tono ? TEMAS[tono] : undefined} />;
 }
 
 /** Cómo se obtuvo el inventario inicial / final */

@@ -1,17 +1,12 @@
 "use client";
 
 import { fmtNum, fmtPesos } from "@/lib/formato";
+import { TarjetaColor } from "@/components/TarjetaColor";
 import type { MarcaCP } from "@/lib/cp/importadorCP";
 import { COLOR_MARCA } from "./NavCP";
 
 export function Kpi({ titulo, valor, sub, vacio }: { titulo: string; valor: string; sub?: string; vacio?: boolean }) {
-  return (
-    <div className={`tarjeta ${vacio ? "border-dashed" : ""}`}>
-      <div className="text-xs text-texto-2">{titulo}</div>
-      <div className={`mt-1.5 text-xl font-semibold tabular-nums ${vacio ? "text-texto-3" : "text-tinta"}`}>{valor}</div>
-      {sub && <div className="mt-0.5 text-xs text-texto-3">{sub}</div>}
-    </div>
-  );
+  return <TarjetaColor titulo={titulo} valor={valor} nota={sub} apagada={vacio} />;
 }
 
 export function Seccion({ titulo, nota, children, accion }: { titulo: string; nota?: React.ReactNode; children: React.ReactNode; accion?: React.ReactNode }) {

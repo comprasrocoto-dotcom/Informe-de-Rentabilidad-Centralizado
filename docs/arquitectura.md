@@ -211,3 +211,13 @@ acceso a alguna de esas dos marcas ve el CP completo, con la información de amb
   con esta función; escribir sigue siendo solo del admin.
 - Las marcas no ven la pestaña "Cargar archivo" ni pueden cambiar el % manual de la Liquidación (lo ven, no lo editan).
 - Hoy: admi.inversionesrocoto@hotmail.com, tatiana123wok@gmail.com y lopezluzmary075@gmail.com ven el CP.
+
+## 4 de noviembre de 2026 — Tarjetas de indicadores con color
+
+Las tarjetas de indicadores (`components/TarjetaColor.tsx`) tienen color propio según lo que miden: franja superior,
+fondo suave, título en mayúsculas, ícono en círculo y valor en el mismo color.
+Ventas azul · Compras naranja · Mercancía vendida/costo morado · Utilidad verde · Inventarios verde azulado ·
+Traslados índigo · Sedes celeste · Facturas/ticket turquesa · Fabricación café · Costos compartidos fucsia ·
+San Agustín azul y Rocoto naranja (CP). Las que superan la meta salen en rojo.
+La tarjeta grande del % de costo del Resumen se pinta verde (en meta) o roja (sobre la meta) con una insignia,
+y Cocina y Bar tienen su propio recuadro.

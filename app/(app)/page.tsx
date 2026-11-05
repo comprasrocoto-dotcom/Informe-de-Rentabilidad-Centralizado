@@ -58,11 +58,19 @@ export default function Resumen() {
       ) : (
         <>
           <div className="mb-3 grid gap-3 lg:grid-cols-[1.3fr_2fr]">
-            <div className={`tarjeta border-l-4 ${sobreMeta ? "border-l-alerta" : "border-l-bien"}`}>
-              <div className="text-xs font-medium text-texto-2">
-                Costo de mercancía vendida {cc !== "todos" ? `· ${cc}` : "· global"}
+            <div
+              className="relative overflow-hidden rounded border bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+              style={{ borderColor: sobreMeta ? "#d32f2f55" : "#2e7d3255", borderTop: `5px solid ${sobreMeta ? "#d32f2f" : "#2e7d32"}`, backgroundImage: `linear-gradient(135deg, ${sobreMeta ? "#d32f2f1f" : "#2e7d321f"} 0%, #ffffff 65%)` }}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-[11px] font-bold tracking-wide uppercase" style={{ color: sobreMeta ? "#b71c1c" : "#1b5e20" }}>
+                  Costo de mercancía vendida {cc !== "todos" ? `· ${cc}` : "· global"}
+                </div>
+                <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold text-white ${sobreMeta ? "bg-alerta" : "bg-bien"}`}>
+                  {sobreMeta ? "Sobre la meta" : "En meta"}
+                </span>
               </div>
-              <div className={`mt-1 text-[44px] leading-none font-semibold tracking-tight tabular-nums ${sobreMeta ? "text-alerta" : "text-tinta"}`}>{fmtPct(c.pct)}</div>
+              <div className={`mt-1 text-[48px] leading-none font-bold tracking-tight tabular-nums ${sobreMeta ? "text-alerta" : "text-bien"}`}>{fmtPct(c.pct)}</div>
               <div className="mt-2 text-xs text-texto-2">
                 {sobreMeta ? `Por encima de la meta de ${fmtPct(meta)}` : `Dentro de la meta de ${fmtPct(meta)}`}
                 {variacion != null && (
@@ -80,8 +88,8 @@ export default function Resumen() {
                   {(["Cocina", "Bar"] as const).map((x) => {
                     const cx = cifras(total, x);
                     return (
-                      <div key={x}>
-                        <div className="text-xs text-texto-2">{x}</div>
+                      <div key={x} className="rounded border border-linea bg-white/80 px-3 py-2" style={{ borderLeft: `4px solid ${x === "Cocina" ? "#ef6c00" : "#8e24aa"}` }}>
+                        <div className="text-[11px] font-bold tracking-wide uppercase" style={{ color: x === "Cocina" ? "#a84300" : "#6a1b9a" }}>{x}</div>
                         <div className="text-lg font-semibold tabular-nums"><PctMeta pct={cx.pct} meta={meta} /></div>
                         <div className="text-[11px] text-texto-3">{fmtM(cx.mv)} sobre {fmtM(cx.ventasBase)}</div>
                       </div>
