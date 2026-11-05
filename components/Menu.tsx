@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PESTANAS_CP } from "@/components/cp/NavCP";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "./Contexto";
@@ -40,6 +41,8 @@ export function Menu() {
   const enlaces = perfil.rol === "admin" ? [...ENLACES, CP, ADMIN] : ENLACES;
   const activo = (href: string) => (href === "/" ? ruta === "/" : ruta === href || ruta.startsWith(href + "/"));
   const actual = enlaces.find((e) => activo(e.href));
+  const enCP = ruta === "/cp" || ruta.startsWith("/cp/");
+  const pestanaCP = enCP ? PESTANAS_CP.find((p) => p.href === ruta) : undefined;
   const marcaFiltro = marcas.find((m) => m.id === filtros.marcaId)?.nombre;
 
   useEffect(() => {
@@ -106,11 +109,24 @@ export function Menu() {
 
       {/* Barra superior */}
       <header className="fixed top-0 right-0 left-14 z-30 flex h-9 items-stretch bg-carbon text-[14px] text-white">
-        <div className="flex items-center px-6 text-white/90">Informe de Rentabilidad</div>
-        {actual && <div className="flex items-center bg-marca px-6 font-medium text-white">{actual.texto}</div>}
-        <div className="ml-auto hidden items-center px-4 text-xs text-white/70 sm:flex">
-          {perfil.rol === "admin" ? (marcaFiltro ?? "Todas las marcas") : misMarcas.map((m) => m.nombre).join(" · ")}
-        </div>
+        {enCP ? (
+          <>
+            <Link href="/cp" className="flex items-center px-6 font-medium text-white hover:bg-white/10">Centro de producción · Cierre de mes</Link>
+            {pestanaCP && <div className="flex items-center bg-marca px-6 font-medium text-white">{pestanaCP.texto}</div>}
+            <div className="ml-auto hidden items-center gap-3 px-4 text-xs text-white/70 sm:flex">
+              <span>San Agustín · Rocoto</span>
+              <Link href="/" className="rounded-sm border border-white/30 px-2 py-0.5 text-white/90 hover:bg-white/10">← Informe de Rentabilidad</Link>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center px-6 text-white/90">Informe de Rentabilidad</div>
+            {actual && <div className="flex items-center bg-marca px-6 font-medium text-white">{actual.texto}</div>}
+            <div className="ml-auto hidden items-center px-4 text-xs text-white/70 sm:flex">
+              {perfil.rol === "admin" ? (marcaFiltro ?? "Todas las marcas") : misMarcas.map((m) => m.nombre).join(" · ")}
+            </div>
+          </>
+        )}
       </header>
     </>
   );
