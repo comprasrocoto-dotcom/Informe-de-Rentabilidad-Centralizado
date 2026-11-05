@@ -110,3 +110,44 @@ export function GraficoDosBarras({ datos, titulo, nombres }: { datos: { etiqueta
     </div>
   );
 }
+
+/** Varias series (barras agrupadas o líneas) con leyenda. Un solo eje. */
+export function GraficoSeries({
+  datos, series, titulo, tipo = "barras", formato = fmtMillones, unidad,
+}: {
+  datos: Record<string, string | number | null>[];
+  series: { clave: string; nombre: string; color: string }[];
+  titulo: string;
+  tipo?: "barras" | "lineas";
+  formato?: (v: number) => string;
+  unidad?: string;
+}) {
+  return (
+    <div className="tarjeta">
+      <h3 className="mb-3 text-sm font-semibold text-tinta">{titulo}</h3>
+      <div className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          {tipo === "barras" ? (
+            <BarChart data={datos} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} barGap={2} barCategoryGap="25%">
+              <CartesianGrid vertical={false} stroke="var(--grid)" />
+              <XAxis dataKey="etiqueta" tick={eje} tickLine={false} axisLine={{ stroke: "var(--grid)" }} />
+              <YAxis tick={eje} tickLine={false} axisLine={false} tickFormatter={formato} width={60} label={unidad ? { value: unidad, angle: -90, position: "insideLeft", fill: "var(--text-secondary)", fontSize: 11 } : undefined} />
+              <Tooltip cursor={{ fill: "rgba(0,0,0,0.04)" }} formatter={(v) => formato(Number(v))} />
+              <Legend iconType="square" iconSize={10} wrapperStyle={{ fontSize: 12 }} />
+              {series.map((s) => <Bar key={s.clave} dataKey={s.clave} name={s.nombre} fill={s.color} radius={[4, 4, 0, 0]} maxBarSize={36} />)}
+            </BarChart>
+          ) : (
+            <LineChart data={datos} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+              <CartesianGrid vertical={false} stroke="var(--grid)" />
+              <XAxis dataKey="etiqueta" tick={eje} tickLine={false} axisLine={{ stroke: "var(--grid)" }} padding={{ left: 24, right: 24 }} />
+              <YAxis tick={eje} tickLine={false} axisLine={false} tickFormatter={formato} width={60} />
+              <Tooltip formatter={(v) => formato(Number(v))} />
+              <Legend iconType="plainline" wrapperStyle={{ fontSize: 12 }} />
+              {series.map((s) => <Line key={s.clave} type="monotone" dataKey={s.clave} name={s.nombre} stroke={s.color} strokeWidth={2} dot={{ r: 4, fill: s.color, stroke: "#fff", strokeWidth: 2 }} />)}
+            </LineChart>
+          )}
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}

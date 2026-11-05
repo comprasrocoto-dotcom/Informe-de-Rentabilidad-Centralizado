@@ -19,6 +19,7 @@ export const ENLACES = [
   { href: "/mercancia", texto: "Mercancía vendida", icono: "M4 6h16M4 12h16M4 18h10M18 16l2 2 3-3" },
   { href: "/cargar", texto: "Cargar datos", icono: "M12 16V4m0 0l-4 4m4-4l4 4M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3" },
 ];
+export const CP = { href: "/cp", texto: "Centro de producción", icono: "M3 21V10l5 3V10l5 3V6l8 4v11zM3 21h18M8 17h2M13 17h2M18 17h0" };
 export const ADMIN = { href: "/admin", texto: "Administración", icono: "M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z" };
 
 function Icono({ d, className = "h-[22px] w-[22px]" }: { d: string; className?: string }) {
@@ -36,8 +37,8 @@ export function Menu() {
   const [cuenta, setCuenta] = useState(false);
   const refCuenta = useRef<HTMLDivElement>(null);
   const misMarcas = perfil.rol === "admin" ? marcas : marcas.filter((m) => perfil.marcas.includes(m.id));
-  const enlaces = perfil.rol === "admin" ? [...ENLACES, ADMIN] : ENLACES;
-  const activo = (href: string) => (href === "/" ? ruta === "/" : ruta.startsWith(href));
+  const enlaces = perfil.rol === "admin" ? [...ENLACES, CP, ADMIN] : ENLACES;
+  const activo = (href: string) => (href === "/" ? ruta === "/" : ruta === href || ruta.startsWith(href + "/"));
   const actual = enlaces.find((e) => activo(e.href));
   const marcaFiltro = marcas.find((m) => m.id === filtros.marcaId)?.nombre;
 

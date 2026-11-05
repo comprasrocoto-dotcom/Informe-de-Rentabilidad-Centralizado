@@ -167,3 +167,25 @@ Nueva pestaña **Descuentos**: cuánto representan los descuentos sobre la venta
 - **Nueva pestaña Traslados:** total trasladado, peso de los traslados en el abastecimiento de las sedes
   (traslados ÷ traslados + compras Cocina y Bar), traslados sobre ventas, evolución mensual, y detalle por sede que
   recibe, centro de costo, motivo, familia, artículo y tipo de documento.
+
+## 4 de noviembre de 2026 — Módulo Centro de producción (CP)
+
+Nueva sección **Centro de producción** (ícono de fábrica en el riel, solo para el administrador), con la misma
+lógica de la web "Cierre de mes CP". Marcas: **San Agustín** (almacén CENTRO DE PRODUCCION) y **Rocoto**
+(almacén PLANTA PRODUCCIÓN ROCOTO).
+
+- **Tablas nuevas** (solo admin por RLS): `cp_compras`, `cp_fabricaciones`, `cp_traslados`, `cp_inventarios`,
+  `cp_base_conversion`, `cp_costos_compartidos`, `cp_reparto_manual` y `cp_cargas` (historial de cargas).
+- **Cargar archivo:** se sube el Excel de cierre completo; cada hoja reemplaza los meses que trae. Compras se filtran
+  a los dos almacenes del CP y se quitan duplicados (almacén, serie, artículo, unidades, valor unitario, total).
+  Base_Conversion se reemplaza entera. Cualquier carga se puede borrar desde el historial.
+- **Kilos:** Gramos → cantidad ÷ factor; Unidades → cantidad × gramos por unidad ÷ 1.000. Se busca por código y,
+  si falta, por nombre. Las líneas sin conversión se avisan y no entran al %.
+- **Liquidación SA vs RO:** los costos compartidos se reparten por % de kilos fabricados del mes, o por un % manual.
+  El % manual ahora queda guardado en la base (antes vivía solo en el navegador).
+- **Juego de inventarios:** Final esperado = Inventario inicial (final del mes anterior) + Compras − Traslados; la
+  fabricación es solo referencia. Kardex de sub-recetas (artículos "SUB."): Inicial + Fabricado − Trasladado contra
+  el conteo real, con semáforo ≤5 % bien, ≤20 % manejable, >20 % muy elevado; se puede ver en kilos.
+- **Otras pestañas:** Resumen global (con cobertura de datos por mes), Compras, Fabricación, Traslados y Top 10.
+- Verificado contra el Excel de cierre: compras $112.103.702, fabricación $1.049.690.107, traslados $162.881.141,
+  inventario $143.619.506.
