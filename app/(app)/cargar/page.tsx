@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "@/components/Contexto";
 import { DescargarBase, descargarCarga } from "@/components/DescargarBase";
+import { CoberturaDatos, type TipoCob } from "@/components/CoberturaDatos";
 import { GUIA_COLUMNAS, type HojaDisponible, type ResultadoHoja, type TipoHoja } from "@/lib/importador";
 import { guardarHoja, revisarSedes, type EstadoSede, type ModoGuardado } from "@/lib/subida";
 import { fmtNum } from "@/lib/formato";
@@ -49,6 +50,8 @@ export default function Cargar() {
   const [aviso, setAviso] = useState<string | null>(null);
   const [mesHistorial, setMesHistorial] = useState("");
   const [modo, setModo] = useState<ModoGuardado>("agregar");
+  const [filtroMarca, setFiltroMarca] = useState<number | null>(null);
+  const [filtroTipo, setFiltroTipo] = useState<TipoCob | null>(null);
   const worker = useRef<Worker | null>(null);
   const pendientes = useRef(new Map<number, (v: { ok: boolean; error?: string; hojas?: HojaDisponible[]; res?: ResultadoHoja }) => void>());
   const contador = useRef(0);
@@ -205,9 +208,11 @@ export default function Cargar() {
     }
     return out;
   }))].sort().reverse();
-  const historialFiltrado = mesHistorial
-    ? historial.filter((c) => c.desde && c.hasta && c.desde.slice(0, 7) <= mesHistorial && c.hasta.slice(0, 7) >= mesHistorial)
-    : historial;
+  const historialFiltrado = historial
+    .filter((c) => !mesHistorial || (c.desde && c.hasta && c.desde.slice(0, 7) <= mesHistorial && c.hasta.slice(0, 7) >= mesHistorial))
+    .filter((c) => filtroMarca == null || c.marca_id === filtroMarca)
+    .filter((c) => filtroTipo == null || c.tipo === filtroTipo);
+  const marcasFiltro = perfil.rol === "admin" ? marcas : marcas.filter((m) => perfil.marcas.includes(m.id));
   const NOMBRES_MES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
   const nombreMes = (k: string) => `${NOMBRES_MES[Number(k.slice(5, 7)) - 1]} ${k.slice(0, 4)}`;
 
@@ -397,6 +402,29 @@ export default function Cargar() {
 
       <DescargarBase />
 
+      <div className="tarjeta flex flex-wrap items-end gap-3 !py-3">
+        <div className="mr-2">
+          <h2 className="text-sm font-medium">Revisar lo cargado</h2>
+          <p className="text-xs text-texto-2">Estos filtros aplican al cuadro de lo que falta y al historial.</p>
+        </div>
+        {marcasFiltro.length > 1 && (
+          <label><span className="etiqueta">Marca</span>
+            <select className="campo w-48" value={filtroMarca ?? ""} onChange={(e) => setFiltroMarca(e.target.value ? Number(e.target.value) : null)}>
+              <option value="">Todas las marcas</option>
+              {marcasFiltro.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
+            </select>
+          </label>
+        )}
+        <label><span className="etiqueta">Tipo</span>
+          <select className="campo w-52" value={filtroTipo ?? ""} onChange={(e) => setFiltroTipo((e.target.value || null) as TipoCob | null)}>
+            <option value="">Todos los tipos</option>
+            {ORDEN_TIPOS.map((t) => <option key={t} value={t}>{NOMBRE_TIPO[t]}</option>)}
+          </select>
+        </label>
+      </div>
+
+      <CoberturaDatos marcaFiltro={filtroMarca} tipoFiltro={filtroTipo} />
+
       <div className="tarjeta overflow-x-auto !p-0">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-3">
           <h2 className="text-sm font-medium">Historial de cargas</h2>
@@ -420,7 +448,7 @@ export default function Cargar() {
             </tr>
           </thead>
           <tbody>
-            {historialFiltrado.length === 0 ? <tr><td colSpan={8} className="text-texto-2">{historial.length ? "No hay cargas de ese mes." : "Aún no hay cargas."}</td></tr> : historialFiltrado.map((c) => {
+            {historialFiltrado.length === 0 ? <tr><td colSpan={8} className="text-texto-2">{historial.length ? "No hay cargas para este filtro." : "Aún no hay cargas."}</td></tr> : historialFiltrado.map((c) => {
               const n = vigentes[c.id];
               return (
                 <tr key={c.id}>

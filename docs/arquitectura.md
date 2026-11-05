@@ -302,3 +302,15 @@ con filas reales: el importador lee exactamente los mismos valores.
 
 Además, al subir, si el nombre de la sede del archivo coincide con el nombre de una sede existente se reutiliza
 esa sede (antes solo se buscaba por alias y podía crear una sede repetida).
+
+## 5 de noviembre de 2026 — ¿Qué falta por subir? y filtros del historial
+
+En **Cargar datos**, un bloque "Revisar lo cargado" con filtros de **Marca** y **Tipo** que aplican a:
+- **¿Qué falta por subir?** (`components/CoberturaDatos.tsx`, función `cobertura_datos()`): una fila por marca,
+  tipo y sede, y una columna por mes (desde el primer mes con datos, editable, hasta el mes en curso).
+  · Ventas, compras y traslados: ✓ y número de días con datos si cubre ≥ 90 % del mes; amarillo "15/31 d" si está
+    incompleto; rojo "Falta" si no hay nada. · Inventarios: ✓ si hay conteo desde el día 25 (cierre), amarillo si
+    solo hay conteo a mitad de mes, rojo si no hay. · Rentabilidad de carta: cargada o falta, por marca.
+  El mes en curso sale en gris. Opción "Solo lo que falta". Los centros de producción solo aparecen si alguna vez
+  tuvieron datos de ese tipo; en ventas no aparecen.
+- **Historial de cargas:** además del mes, ahora se filtra por marca y tipo.
