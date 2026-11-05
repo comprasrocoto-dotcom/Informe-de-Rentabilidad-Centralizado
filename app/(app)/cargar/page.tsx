@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "@/components/Contexto";
+import { DescargarBase, descargarCarga } from "@/components/DescargarBase";
 import { GUIA_COLUMNAS, type HojaDisponible, type ResultadoHoja, type TipoHoja } from "@/lib/importador";
 import { guardarHoja, revisarSedes, type EstadoSede } from "@/lib/subida";
 import { fmtNum } from "@/lib/formato";
@@ -28,7 +29,8 @@ function descargarPlantilla(tipo: TipoHoja) {
 }
 
 export default function Cargar() {
-  const { sb, perfil, marcas, recargarCatalogos, variasMarcas } = useApp();
+  const { sb, perfil, marcas, sedes, recargarCatalogos, variasMarcas } = useApp();
+  const [bajando, setBajando] = useState<{ id: number; t: string } | null>(null);
   const [marcaId, setMarcaId] = useState<number | null>(perfil.rol !== "admin" && perfil.marcas.length === 1 ? perfil.marcas[0] : null);
   const [eleccion, setEleccion] = useState<Eleccion | null>(null);
   const [archivo, setArchivo] = useState<File | null>(null);
@@ -155,6 +157,19 @@ export default function Cargar() {
     setOcupado(null);
     await recargarCatalogos();
     await cargarHistorial();
+  }
+
+  async function bajarCarga(c: Carga) {
+    setError(null);
+    setBajando({ id: c.id, t: "…" });
+    try {
+      await descargarCarga(sb, c, {
+        marca: (id) => marcas.find((m) => m.id === id)?.nombre ?? String(id),
+        sede: (id) => sedes.find((s) => s.id === id)?.nombre ?? String(id),
+      }, (t) => setBajando({ id: c.id, t }));
+    } catch (e) {
+      setError(`No se pudo descargar la carga: ${e instanceof Error ? e.message : String(e)}`);
+    } finally { setBajando(null); }
   }
 
   async function borrarCarga(c: Carga) {
@@ -357,6 +372,8 @@ export default function Cargar() {
         </div>
       )}
 
+      <DescargarBase />
+
       <div className="tarjeta overflow-x-auto !p-0">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-3">
           <h2 className="text-sm font-medium">Historial de cargas</h2>
@@ -368,7 +385,7 @@ export default function Cargar() {
           </label>
         </div>
         <p className="px-4 text-xs text-texto-2">
-          Si subiste un archivo equivocado, pulsa <b>Borrar</b> en esa fila: se eliminan solo los datos que entraron con esa carga.
+          <b>Descargar</b> baja en Excel exactamente las filas que entraron con esa carga. Si subiste un archivo equivocado, pulsa <b>Borrar</b> en esa fila: se eliminan solo los datos que entraron con esa carga.
           Una carga marcada como “Reemplazada” ya no tiene datos porque otra posterior la sustituyó.
         </p>
         {aviso && <p className="mx-4 mt-2 rounded-md bg-green-50 p-2 text-sm text-green-800">{aviso}</p>}
@@ -393,7 +410,15 @@ export default function Cargar() {
                   <td className="whitespace-nowrap text-xs">
                     {n === undefined ? "…" : n > 0 ? <span className="text-green-700">Vigente</span> : <span className="text-texto-2">Reemplazada</span>}
                   </td>
-                  <td className="text-right">
+                  <td className="space-x-1.5 text-right whitespace-nowrap">
+                    <button
+                      className="rounded-md border border-marca/40 px-2 py-0.5 text-xs text-tinta hover:bg-marca-suave disabled:opacity-50"
+                      disabled={!n || bajando !== null}
+                      title={n ? "Descargar en Excel las filas de esta carga" : "Esta carga ya no tiene datos"}
+                      onClick={() => bajarCarga(c)}
+                    >
+                      {bajando?.id === c.id ? `Descargando ${bajando.t}` : "Descargar"}
+                    </button>
                     <button
                       className="rounded-md border border-red-200 px-2 py-0.5 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50"
                       disabled={borrando !== null || !!ocupado}

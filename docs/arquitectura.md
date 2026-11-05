@@ -269,3 +269,17 @@ Compras Cocina y Bar (compras Cocina + Bar), Compras vs ventas (% compra/venta),
 Cocina y Bar), Costo (% costo), Participación (participación en la venta), Inventarios (último inventario final),
 Mercancía vendida (mercancía vendida) y Rentabilidad de carta (ventas). Respeta el filtro de centro de costo donde
 la página lo tiene.
+
+## 5 de noviembre de 2026 — Descargar la base de datos
+
+En **Cargar datos** hay dos formas de bajar lo que hay guardado (`lib/descargaBase.ts`, `components/DescargarBase.tsx`):
+
+- **Bloque "Descargar base de datos":** eliges qué (compras, ventas por día y artículo, facturas de venta,
+  inventarios, traslados, rentabilidad de carta o todo en un libro con una hoja por tipo), marca, sede, fechas y
+  formato (Excel o CSV con ";"). Fechas vacías = todo. Lee por páginas de 1.000 filas mostrando el avance, y pone
+  el nombre de la marca y de la sede en vez de sus números.
+- **Botón "Descargar" en cada fila del historial:** baja en Excel exactamente las filas que entraron con esa carga
+  (en ventas, también sus facturas).
+
+Respeta el acceso por marca: cada usuario solo baja lo de sus marcas. Si una tabla pasa de 1.000.000 de filas,
+pide CSV o un rango más corto (Excel no abre más).
