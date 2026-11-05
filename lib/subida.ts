@@ -95,6 +95,10 @@ export async function guardarHoja(
       progreso(`Reemplazando datos anteriores (${a.slice(0, 7)})…`, 0.02 + (0.08 * i) / ventanas.length);
       const { error } = await sb.from(tabla).delete().eq("marca_id", marcaId).in("sede_id", sedeIds).gte("fecha", a).lte("fecha", b);
       if (error) throw error;
+      if (res.tipo === "ventas") {
+        const { error: ef } = await sb.from("ventas_facturas").delete().eq("marca_id", marcaId).in("sede_id", sedeIds).gte("fecha", a).lte("fecha", b);
+        if (ef) throw ef;
+      }
     }
   }
 
@@ -125,6 +129,22 @@ export async function guardarHoja(
     }
   }
   await Promise.all([trabajador(), trabajador(), trabajador()]);
+
+  // Ventas: guardar facturas (para ticket promedio) y clasificar centro de costo como Casa de Nadie
+  if (res.tipo === "ventas") {
+    const fs = (res.facturas ?? []).map((x) => {
+      const { sede, ...resto } = x;
+      return { ...resto, marca_id: marcaId, carga_id: cargaId, sede_id: sedes.get(normalizarSede(sede)) };
+    });
+    for (let i = 0; i < fs.length; i += LOTE) {
+      progreso(`Guardando facturas ${Math.min(i + LOTE, fs.length).toLocaleString("es-CO")} de ${fs.length.toLocaleString("es-CO")}…`, 0.97);
+      const { error } = await sb.from("ventas_facturas").insert(fs.slice(i, i + LOTE));
+      if (error) throw error;
+    }
+    progreso("Clasificando ventas por centro de costo…", 0.99);
+    const { error: ec } = await sb.rpc("clasificar_ventas", { p_marca: marcaId });
+    if (ec) throw ec;
+  }
 
   await sb.from("cargas").update({ filas_guardadas: hechos }).eq("id", cargaId);
   progreso("Listo", 1);

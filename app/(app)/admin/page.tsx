@@ -79,6 +79,14 @@ export default function Admin() {
     recargarCatalogos();
   }
 
+  async function guardarMeta(id: number, pct: number) {
+    if (!(pct > 0 && pct < 100)) return avisar(false, "La meta debe estar entre 1 y 99 %.");
+    const { error } = await sb.from("marcas").update({ meta_costo: pct / 100 }).eq("id", id);
+    if (error) return avisar(false, error.message);
+    avisar(true, `Meta de costo de ${marcas.find((m) => m.id === id)?.nombre} guardada en ${pct}%.`);
+    recargarCatalogos();
+  }
+
   async function cambiarTipo(id: number, tipo: string) {
     const { error } = await sb.from("sedes").update({ tipo }).eq("id", id);
     if (error) return avisar(false, error.message);
@@ -154,7 +162,17 @@ export default function Admin() {
             const sedesM = sedes.filter((s) => s.marca_id === m.id);
             return (
               <div key={m.id} className="rounded-lg border border-linea p-3">
-                <h3 className="mb-2 text-sm font-semibold">{m.nombre}</h3>
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold">{m.nombre}</h3>
+                  <label className="flex items-center gap-1 text-xs text-texto-2" title="Meta de costo de mercancía vendida: por encima se marca en rojo">
+                    Meta de costo
+                    <input
+                      type="number" min={1} max={99} step={0.5} className="campo !h-7 w-16 !px-1.5 text-right"
+                      defaultValue={Math.round(Number(m.meta_costo ?? 0.35) * 1000) / 10}
+                      onBlur={(e) => guardarMeta(m.id, Number(e.target.value))}
+                    />%
+                  </label>
+                </div>
                 {sedesM.map((s) => (
                   <div key={s.id} className="mb-2">
                     <div className="flex items-center justify-between gap-2 text-sm">

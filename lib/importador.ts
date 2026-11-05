@@ -11,6 +11,9 @@ export type FilaVenta = {
   lineas: number; unidades: number; subtotal: number; descuento: number;
   base: number; impuestos: number; neto: number;
 };
+export type FilaFactura = {
+  sede: string; fecha: string; serie: string; tipo_documento: string | null; lineas: number; base: number; neto: number;
+};
 export type FilaCompra = {
   sede: string; fecha: string; serie: string | null; tipo_documento: string | null;
   serie_origen: string | null; nif: string | null; proveedor: string | null; familia: string | null;
@@ -42,6 +45,7 @@ export type ResultadoHoja = {
   desde: string | null;
   hasta: string | null;
   sedes: string[]; // nombres normalizados de Establecimiento / Almacén encontrados
+  facturas?: FilaFactura[]; // solo ventas: una fila por documento
   filas: (FilaVenta | FilaCompra | FilaInventario | FilaTraslado | FilaRentabilidad)[];
 };
 
@@ -184,6 +188,7 @@ const CAMPOS: Record<TipoHoja, Record<string, string[]>> = {
     tarifa: ["tarifa venta", "tarifa"],
     tipo_documento: ["tipo documento"],
     fecha: ["fecha doc", "fecha"],
+    serie: ["serie / numero", "serie/numero", "serie"],
     familia: ["familia"],
     centro_costos: ["centro de costos", "centro de costo", "cc", "centro"],
     articulo: ["articulo"],
@@ -327,6 +332,8 @@ export function procesarHoja(nombreHoja: string, filas: unknown[][], tipo: TipoH
     if (!res.hasta || f > res.hasta) res.hasta = f;
   };
   const agregadas = new Map<string, FilaVenta>();
+  const facturas = new Map<string, FilaFactura>();
+  const PROPINA = /PROPIN|TIP\b|SERVICIO VOLUNTARIO/i;
 
   for (let i = enc.fila + 1; i < filas.length; i++) {
     const r = filas[i];
@@ -362,6 +369,15 @@ export function procesarHoja(nombreHoja: string, filas: unknown[][], tipo: TipoH
         impuestos: num(get(r, "impuestos")), neto: num(get(r, "neto")),
       };
       if (c.subtotal === undefined) fila.subtotal = fila.neto;
+      // Igual que Casa de Nadie: las líneas con base y neto en cero (modificadores sin precio) no cuentan
+      if (fila.base === 0 && fila.neto === 0) { omitir("Líneas en $0 (modificadores sin precio, no cuentan)"); continue; }
+      const serie = texto(get(r, "serie"));
+      if (serie && !PROPINA.test(fila.familia ?? "") && !PROPINA.test(fila.articulo ?? "")) {
+        const kf = [sede, f, serie, fila.tipo_documento].join("\u0001");
+        const fa = facturas.get(kf);
+        if (fa) { fa.lineas++; fa.base += fila.base; fa.neto += fila.neto; }
+        else facturas.set(kf, { sede, fecha: f, serie, tipo_documento: fila.tipo_documento, lineas: 1, base: fila.base, neto: fila.neto });
+      }
       const k = [sede, f, fila.tarifa, fila.tipo_documento, fila.familia, fila.centro_costos, fila.articulo].join("\u0001");
       const ya = agregadas.get(k);
       if (ya) {
@@ -400,6 +416,7 @@ export function procesarHoja(nombreHoja: string, filas: unknown[][], tipo: TipoH
       for (const k of ["unidades", "subtotal", "descuento", "base", "impuestos", "neto"] as const) v[k] = Math.round(v[k] * 100) / 100;
       res.filas.push(v);
     }
+    res.facturas = [...facturas.values()].map((x) => ({ ...x, base: Math.round(x.base * 100) / 100, neto: Math.round(x.neto * 100) / 100 }));
   }
   res.sedes = [...sedes].sort();
   return res;

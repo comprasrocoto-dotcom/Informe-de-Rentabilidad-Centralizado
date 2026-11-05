@@ -14,7 +14,7 @@ const nombreMes = (inicio: string) => {
   return `${NOMBRES_MES[m - 1]} ${y}`;
 };
 
-export function BarraFiltros({ sinFechas = false, sinSede = false }: { sinFechas?: boolean; sinSede?: boolean }) {
+export function BarraFiltros({ sinFechas = false, sinSede = false, sinCC = false }: { sinFechas?: boolean; sinSede?: boolean; sinCC?: boolean }) {
   const { perfil, marcas, sedes, filtros, setFiltros, variasMarcas, sb } = useApp();
   const sedesMarca = sedes.filter((s) => filtros.marcaId == null || s.marca_id === filtros.marcaId);
   const [meses, setMeses] = useState<string[]>([]);
@@ -52,7 +52,7 @@ export function BarraFiltros({ sinFechas = false, sinSede = false }: { sinFechas
         <label>
           <span className="etiqueta">Marca</span>
           <select
-            className="campo w-48"
+            className="campo w-44"
             value={filtros.marcaId ?? ""}
             onChange={(e) => setFiltros({ marcaId: e.target.value ? Number(e.target.value) : null })}
           >
@@ -67,7 +67,7 @@ export function BarraFiltros({ sinFechas = false, sinSede = false }: { sinFechas
         <label>
           <span className="etiqueta">Sede</span>
           <select
-            className="campo w-64"
+            className="campo w-52"
             value={filtros.sedeId ?? ""}
             onChange={(e) => setFiltros({ sedeId: e.target.value ? Number(e.target.value) : null })}
           >
@@ -80,11 +80,26 @@ export function BarraFiltros({ sinFechas = false, sinSede = false }: { sinFechas
           </select>
         </label>
       )}
+      {!sinCC && (
+        <div>
+          <span className="etiqueta">Centro de costo</span>
+          <div className="flex h-9 overflow-hidden rounded-md border border-linea bg-white text-sm" role="group">
+            {(["todos", "Cocina", "Bar"] as const).map((c) => (
+              <button
+                key={c} type="button" onClick={() => setFiltros({ cc: c })} aria-pressed={filtros.cc === c}
+                className={`px-3 ${filtros.cc === c ? "bg-marca font-medium text-white" : "text-texto-2 hover:bg-fondo"} ${c !== "todos" ? "border-l border-linea" : ""}`}
+              >
+                {c === "todos" ? "Todos" : c}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {!sinFechas && (
         <>
           <label>
             <span className="etiqueta">Mes</span>
-            <select className="campo w-56" value={valorSelect} onChange={(e) => elegirMes(e.target.value)}>
+            <select className="campo w-44" value={valorSelect} onChange={(e) => elegirMes(e.target.value)}>
               <option value="personalizado" disabled>Rango personalizado</option>
               {todo && <option value="todo">Todos los meses</option>}
               {meses.length >= 3 && <option value="trimestre">Últimos 3 meses</option>}
@@ -95,11 +110,11 @@ export function BarraFiltros({ sinFechas = false, sinSede = false }: { sinFechas
           </label>
           <label>
             <span className="etiqueta">Desde</span>
-            <input type="date" className="campo" value={filtros.desde} onChange={(e) => setFiltros({ desde: e.target.value })} />
+            <input type="date" className="campo w-36" value={filtros.desde} onChange={(e) => setFiltros({ desde: e.target.value })} />
           </label>
           <label>
             <span className="etiqueta">Hasta</span>
-            <input type="date" className="campo" value={filtros.hasta} onChange={(e) => setFiltros({ hasta: e.target.value })} />
+            <input type="date" className="campo w-36" value={filtros.hasta} onChange={(e) => setFiltros({ hasta: e.target.value })} />
           </label>
         </>
       )}

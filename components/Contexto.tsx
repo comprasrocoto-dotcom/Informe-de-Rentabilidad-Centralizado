@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 
 export type Perfil = { email: string; rol: "admin" | "marca"; marcas: number[] };
-export type Marca = { id: number; nombre: string };
+export type Marca = { id: number; nombre: string; meta_costo: number };
 export type Sede = { id: number; marca_id: number; nombre: string; tipo: "punto_venta" | "produccion" };
 
 type Filtros = {
@@ -12,6 +12,7 @@ type Filtros = {
   sedeId: number | null; // null = todas las sedes
   desde: string;
   hasta: string;
+  cc: "todos" | "Cocina" | "Bar"; // centro de costo
 };
 
 type Ctx = {
@@ -22,6 +23,8 @@ type Ctx = {
   setFiltros: (f: Partial<Filtros>) => void;
   /** true si el usuario puede elegir entre varias marcas (admin o con más de una) */
   variasMarcas: boolean;
+  /** Meta de costo (fracción, ej. 0,35) de la marca filtrada; si son varias, la de la primera */
+  meta: number;
   recargarCatalogos: () => Promise<void>;
   sb: ReturnType<typeof crearClienteNavegador>;
 };
@@ -50,11 +53,12 @@ export function ProveedorApp({ perfil, children }: { perfil: Perfil; children: R
     sedeId: null,
     desde: primerDiaHaceMeses(12),
     hasta: new Date().toISOString().slice(0, 10),
+    cc: "todos",
   });
 
   async function recargarCatalogos() {
     const [m, s] = await Promise.all([
-      sb.from("marcas").select("id,nombre").order("nombre"),
+      sb.from("marcas").select("id,nombre,meta_costo").order("nombre"),
       sb.from("sedes").select("id,marca_id,nombre,tipo").order("nombre"),
     ]);
     setMarcas((m.data as Marca[]) ?? []);
@@ -80,6 +84,8 @@ export function ProveedorApp({ perfil, children }: { perfil: Perfil; children: R
   }, []);
 
   const variasMarcas = perfil.rol === "admin" || perfil.marcas.length > 1;
+  const marcaMeta = marcas.find((m) => m.id === filtros.marcaId) ?? marcas.find((m) => perfil.rol === "admin" || perfil.marcas.includes(m.id));
+  const meta = Number(marcaMeta?.meta_costo ?? 0.35);
 
   function marcaPermitida(m: unknown): m is number | null {
     if (m === null) return variasMarcas;
@@ -102,7 +108,7 @@ export function ProveedorApp({ perfil, children }: { perfil: Perfil; children: R
   }
 
   return (
-    <Contexto.Provider value={{ perfil, marcas, sedes, filtros, setFiltros, variasMarcas, recargarCatalogos, sb }}>
+    <Contexto.Provider value={{ perfil, marcas, sedes, filtros, setFiltros, variasMarcas, meta, recargarCatalogos, sb }}>
       {children}
     </Contexto.Provider>
   );

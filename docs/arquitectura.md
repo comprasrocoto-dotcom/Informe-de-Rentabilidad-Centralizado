@@ -105,3 +105,43 @@ El Historial de cargas también se puede filtrar por mes.
   primera columna fijos al desplazarse, filas de mes resaltadas.
 - **Pantalla de ingreso** renovada.
 - Se quitó una ruta de prueba que había quedado en el código.
+
+## 4 de noviembre de 2026 — Misma lógica que el tablero de Casa de Nadie
+
+Se llevó a la web central la lógica de cálculo del tablero `Rentabilidad-casa-de-Nadie`, para todas las marcas.
+
+**Decisiones confirmadas por Mariluz:**
+1. Ventas para el costo como Casa de Nadie: ventas totales (incluye descuentos y notas crédito, que restan)
+   menos las ventas excluidas (artículos de otros centros de costo con venta positiva, ej. Parking).
+   *Reemplaza la decisión anterior de usar solo Cocina y Bar sin descuentos.*
+2. Meta de costo 35% para todas las marcas, editable por marca en Administración.
+3. Se guarda el número de factura para contar facturas y calcular el ticket promedio (requiere volver a subir las ventas).
+
+**Reglas de cálculo (iguales a Casa de Nadie):**
+- Ventas = columna Base, sin propinas. Las líneas con base y neto en $0 (modificadores) no cuentan.
+- Centro de costo de negocio: se respeta el del Excel; *Eventos* y filas sin centro se asignan a Bar o Cocina
+  (familias de bar, o el centro donde más unidades vende ese artículo / esa familia).
+- Compras del juego de inventarios: solo centros Cocina y Bar. Lo demás se muestra como excluido.
+- Inventarios: cada fecha es un conteo. Con 2 o más conteos en el mes, el primero es el inicial y el último el final;
+  con uno solo, si es del día 1 al 15 es inicial y si no, final. Sin conteo inicial propio se hereda el cierre del mes anterior.
+- Mercancía vendida = Inv. inicial + Compras (+ traslados) − Inv. final. Si falta un conteo: solo compras.
+- Costo global = Mercancía vendida ÷ Ventas base. Costo por centro = MV del centro ÷ ventas del centro.
+- Utilidad bruta = Ventas totales − Mercancía vendida.
+- Rentabilidad de carta (ingeniería del menú): costo = Coste de la ficha (hoja RENTABILIDAD) × unidades vendidas.
+  Se excluyen tarifas Rappi / personal / empleados y familias que no son producto. Prioridad de recomendados:
+  margen 40% + rotación 30% + utilidad 30%.
+
+**Pestañas nuevas:** Costo, Participación, Inventarios, Mercancía vendida (con exportación a Excel), y filtro
+Todos / Cocina / Bar en la barra de filtros.
+
+**Verificación contra el tablero original** (se ejecutó su código con los mismos Excel):
+- Casa de Nadie, julio a septiembre: ventas totales, ventas base, excluidas, compras, inventarios, mercancía vendida y
+  % de costo global coinciden al peso (34,77% el período; 37,55% / 34,23% / 32,82% por mes).
+- Rocoto, julio, ingeniería del menú: 220 productos, venta base $830.212.728, 21.842 unidades y 317 fichas: iguales.
+
+**Diferencias intencionales con el original:**
+- El tablero original calcula mal el % de Cocina y de Bar por mes: les asigna como inventario inicial el de todo el
+  local. Aquí cada centro hereda su propio inventario (Cocina julio: 35,4% en vez de 58,7%).
+- El cruce de productos con fichas es más robusto (corrige tildes dañadas y espacios dobles): en Rocoto julio
+  encuentra ficha para 200 productos en vez de 179.
+- El gráfico de tendencia del menú, que en el original usaba dos ejes, se separó en dos gráficos.

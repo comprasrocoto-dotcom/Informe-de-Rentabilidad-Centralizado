@@ -18,3 +18,13 @@ export const fmtMes = (iso: string) => {
 };
 
 export const div = (a: number, b: number) => (b ? a / b : null);
+
+/** Valor resumido en millones con signo de pesos: $ 1.063,8 M */
+export const fmtM = (n: number | null | undefined) => {
+  if (n == null || !isFinite(n)) return "—";
+  const a = Math.abs(n);
+  if (a < 1_000_000) return fmtPesos(n);
+  return `${n < 0 ? "-" : ""}$ ${(a / 1_000_000).toLocaleString("es-CO", { maximumFractionDigits: 1, minimumFractionDigits: 1 })} M`;
+};
+/** Fecha ISO a dd/mm/aaaa */
+export const fmtFecha = (iso: string | null | undefined) => (iso ? iso.slice(0, 10).split("-").reverse().join("/") : "");
