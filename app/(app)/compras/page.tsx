@@ -49,7 +49,7 @@ export default function Compras() {
     <div>
       <Encabezado
         titulo="Compras"
-        descripcion={<>Solo entran las compras con centro de costo <b>{pcc ?? "Cocina o Bar"}</b>: son las que alimentan el juego de inventarios. Lo demás (aseo, empaque, utensilios…) se muestra aparte como excluido.</>}
+        descripcion={<>Solo entran las compras con centro de costo <b>{pcc ?? "Cocina o Bar"}</b>: son las que alimentan el juego de inventarios. Lo demás (aseo, empaque, utensilios…) se muestra aparte como excluido. No incluye el almacén del centro de producción: esas compras llegan a las sedes como traslados (y se ven en el módulo CP); si eliges esa sede en el filtro, sí aparecen.</>}
       />
       <PestanasCompras />
       <BarraFiltros />

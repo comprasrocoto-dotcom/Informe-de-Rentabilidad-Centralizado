@@ -331,3 +331,18 @@ en Excel (cualquier nombre de hoja) o archivo plano (.csv / .txt, con ; y decima
 - **Inventario suelto:** si el archivo trae columna "Artículo" se lee por nombre de columna (export del ERP);
   la hoja Inventario_CP del cierre se sigue leyendo por posición.
 - El libro completo se lee exactamente igual que antes (comparado fila por fila).
+
+## 6 de noviembre de 2026 — Una sola regla: Cocina y Bar, sin el almacén de producción
+
+Confirmado con la usuaria: material de empaque, aseo y lo demás **no** entra en el costo; solo los centros de costo
+Cocina o Bar. El motor de costos ya lo hacía; ahora todas las páginas usan la misma regla:
+
+- `compras_por` y `compras_cocina_bar`: sin el almacén de producción (CENTRO DE PRODUCCION 123 WOK, PLANTA
+  PRODUCCION ROCOTO) salvo que se elija esa sede. Antes Compras de 123 WOK en octubre mostraba $284,4 M con
+  $46,8 M del centro de producción, que ya llegan a las sedes como traslados (se contaban dos veces frente al costo).
+  Ahora: $237.580.454, igual al motor de costos.
+- `traslados_por` tiene `p_operativas` (por defecto solo Cocina/Bar; null = todo) y `traslados_kpis` devuelve
+  `total` (Cocina/Bar) y `excluidos`. La página Traslados muestra "Traslados Cocina + Bar" ($58.594.778 en octubre,
+  igual al motor) y "Traslados excluidos" ($5.013.119 de material de empaque) aparte.
+- Verificado: los traslados recibidos por 123 WOK cuadran al peso con lo que el CP envía a San Agustín
+  (jul $54.411.747, ago $54.078.314, sep $56.612.283, oct $63.607.897).
