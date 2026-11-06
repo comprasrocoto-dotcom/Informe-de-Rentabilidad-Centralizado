@@ -361,3 +361,17 @@ igual que en el costo:
   primeras).
 - Verificado 123 WOK octubre: compras $237.580.454 + traslados $58.594.778 = $296.175.232 (Cocina $257.399.682,
   Bar $38.775.550), igual al motor de costos.
+
+## 6 de noviembre de 2026 — MALANGA DISTRITO VERA = MALANGA CIUDAD DEL RIO
+
+Es la misma sede de ARREBATAO: el archivo de inventarios la llama "Distrito Vera" y los de ventas y compras
+"Ciudad del Río". Se unió todo en la sede 9 (MALANGA CIUDAD DEL RIO): los 1.958 renglones de inventario (conteos
+31/07, 30/08, 30/09 y 31/10) pasaron a ella, sus 4 alias (MALANGA DISTRITO VERA, MALANGA DEL TROPICO DISTRITO VERA,
+MALANGA CIUDAD DEL RIO, MALANGA DEL TROPICO CIUDAD DEL RIO) apuntan a ella y la sede 8 se eliminó. Los próximos
+archivos con cualquiera de los dos nombres caen en la misma sede.
+
+`reasignar_alias` (Administración) ahora también mueve `ventas_facturas` y elimina la sede vieja si queda vacía.
+
+Observación de datos: el conteo de Bar del 30/09 en esa sede está inflado (Ron Zacapa 18 → 159 → 14,
+Buchanan's 18 años 24 → 133,5 → 40, Hendrick's 42 → 148,5 → 102), lo que deja la mercancía vendida de Bar
+negativa en septiembre y muy alta en octubre. El total Cocina + Bar de los dos meses juntos no se afecta.
