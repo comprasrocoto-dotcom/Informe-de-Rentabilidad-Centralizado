@@ -134,7 +134,7 @@ export function ComparacionSedes({ titulo, filas, agregado = "suma", formato = f
 export type MetricaSede = "ventas" | "compras" | "traslados" | "mv" | "pctCosto" | "pctCompra" | "invFinal" | "utilidad";
 const CONF: Record<MetricaSede, { titulo: string; agregado: Agregado; pct?: boolean }> = {
   ventas: { titulo: "Ventas por sede", agregado: "suma" },
-  compras: { titulo: "Compras por sede", agregado: "suma" },
+  compras: { titulo: "Compras + traslados por sede", agregado: "suma" },
   traslados: { titulo: "Traslados recibidos por sede", agregado: "suma" },
   mv: { titulo: "Mercancía vendida por sede", agregado: "suma" },
   pctCosto: { titulo: "% costo de mercancía vendida por sede", agregado: "razon", pct: true },
@@ -155,7 +155,7 @@ export function ComparacionSedesCostos({ metrica, cc: ccFijo, titulo, nota }: { 
       const sede = sedePorId.get(sedeId)?.nombre ?? `Sede ${sedeId}`;
       switch (metrica) {
         case "ventas": return { sede, mes, num: c.ventasTot };
-        case "compras": return { sede, mes, num: c.compras };
+        case "compras": return { sede, mes, num: c.compras + c.traslados };
         case "traslados": return { sede, mes, num: c.traslados };
         case "mv": return { sede, mes, num: c.mv };
         case "utilidad": return { sede, mes, num: c.utilidad };

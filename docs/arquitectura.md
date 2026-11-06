@@ -346,3 +346,18 @@ Cocina o Bar. El motor de costos ya lo hacía; ahora todas las páginas usan la 
   igual al motor) y "Traslados excluidos" ($5.013.119 de material de empaque) aparte.
 - Verificado: los traslados recibidos por 123 WOK cuadran al peso con lo que el CP envía a San Agustín
   (jul $54.411.747, ago $54.078.314, sep $56.612.283, oct $63.607.897).
+
+## 6 de noviembre de 2026 — Los traslados se suman a la compra
+
+En todo el módulo de Compras, lo que llega por traslado del centro de producción (Cocina y Bar) se suma a la compra,
+igual que en el costo:
+- `compras_por(..., p_traslados)`: con `true` une los traslados como el proveedor "TRASLADOS CENTRO DE PRODUCCIÓN",
+  con su familia, artículo y centro de costo. El centro de costo se agrupa en mayúsculas (une "MATERIAL DE EMPAQUE"
+  con "Material de empaque"). `compras_cocina_bar(..., p_traslados default true)` igual.
+- Compras General: tarjeta "Compras + traslados Cocina + Bar" con el desglose, gráfica mensual de compras y traslados,
+  tablas por proveedor, familia y artículo con traslados, y los excluidos (compras y traslados) aparte.
+- Cocina y Bar y la comparación por sede ("Compras + traslados por sede") también suman traslados.
+- Participación: el ratio compra / venta usa compras + traslados y ahora suma todas las familias (antes solo las 12
+  primeras).
+- Verificado 123 WOK octubre: compras $237.580.454 + traslados $58.594.778 = $296.175.232 (Cocina $257.399.682,
+  Bar $38.775.550), igual al motor de costos.

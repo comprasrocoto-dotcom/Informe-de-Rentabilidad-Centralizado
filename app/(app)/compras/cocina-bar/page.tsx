@@ -101,8 +101,8 @@ export default function ComprasCocinaBar() {
   return (
     <div>
       <Encabezado
-        titulo="Compras de Cocina y Bar"
-        descripcion={<>Las compras de los dos centros de costo que alimentan el costo de mercancía vendida, lado a lado y mes a mes. En la variación, ▲ en rojo es que se compró más que el mes anterior.</>}
+        titulo="Compras + traslados de Cocina y Bar"
+        descripcion={<>Las compras más los traslados recibidos del centro de producción, de los dos centros de costo que alimentan el costo de mercancía vendida, lado a lado y mes a mes. Los traslados aparecen como el proveedor &quot;TRASLADOS CENTRO DE PRODUCCIÓN&quot;. En la variación, ▲ en rojo es que se compró más que el mes anterior.</>}
       />
       <PestanasCompras />
       <BarraFiltros />
@@ -110,8 +110,8 @@ export default function ComprasCocinaBar() {
       {!meses.length && !cargando ? <p className="text-sm text-texto-2">No hay compras de Cocina o Bar para este filtro.</p> : (
         <>
           <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
-            <TarjetaColor titulo="Compras Cocina" valor={fmtM(totC)} exacto={fmtPesos(totC)} nota={`${fmtPct(tot ? totC / tot : null)} de Cocina + Bar`} tema={TEMAS.compras} />
-            <TarjetaColor titulo="Compras Bar" valor={fmtM(totB)} exacto={fmtPesos(totB)} nota={`${fmtPct(tot ? totB / tot : null)} de Cocina + Bar`} tema={TEMAS.costo} />
+            <TarjetaColor titulo="Compras + traslados Cocina" valor={fmtM(totC)} exacto={fmtPesos(totC)} nota={`${fmtPct(tot ? totC / tot : null)} de Cocina + Bar`} tema={TEMAS.compras} />
+            <TarjetaColor titulo="Compras + traslados Bar" valor={fmtM(totB)} exacto={fmtPesos(totB)} nota={`${fmtPct(tot ? totB / tot : null)} de Cocina + Bar`} tema={TEMAS.costo} />
             <TarjetaColor titulo="Total Cocina + Bar" valor={fmtM(tot)} exacto={fmtPesos(tot)} nota={`${meses.length} meses · promedio ${fmtM(meses.length ? tot / meses.length : 0)} al mes`} tema={TEMAS.ventas} />
             <TarjetaColor titulo={`Cocina ${ult ? fmtMes(ult) : ""}`} valor={fmtM(fU?.cocina ?? 0)} exacto={fmtPesos(fU?.cocina ?? 0)}
               nota={fU?.vC != null ? `${fU.vC > 0 ? "▲" : "▼"} ${fmtPct(Math.abs(fU.vC))} frente a ${fmtMes(ant!)}` : "Sin mes anterior"} tema={fU?.vC != null && fU.vC > 0.05 ? TEMAS.alerta : TEMAS.compras} />
@@ -119,9 +119,9 @@ export default function ComprasCocinaBar() {
               nota={fU?.vB != null ? `${fU.vB > 0 ? "▲" : "▼"} ${fmtPct(Math.abs(fU.vB))} frente a ${fmtMes(ant!)}` : "Sin mes anterior"} tema={fU?.vB != null && fU.vB > 0.05 ? TEMAS.alerta : TEMAS.costo} />
           </div>
 
-          <ComparacionSedesCostos metrica="compras" cc="todos" titulo="Compras Cocina + Bar por sede" />
+          <ComparacionSedesCostos metrica="compras" cc="todos" titulo="Compras + traslados Cocina + Bar por sede" />
           <div className="mb-4 grid gap-3 2xl:grid-cols-[1fr_1.3fr]">
-            <GraficoSeries titulo="Compras por mes · Cocina y Bar" datos={mensual.map((x) => ({ etiqueta: fmtMes(x.m), cocina: x.cocina, bar: x.bar }))}
+            <GraficoSeries titulo="Compras + traslados por mes · Cocina y Bar" datos={mensual.map((x) => ({ etiqueta: fmtMes(x.m), cocina: x.cocina, bar: x.bar }))}
               series={[{ clave: "cocina", nombre: "Cocina", color: COLOR.Cocina }, { clave: "bar", nombre: "Bar", color: COLOR.Bar }]} />
             <div className="tarjeta overflow-hidden !p-0">
               <h2 className="px-4 pt-3 pb-2 text-sm font-semibold text-tinta">Mes a mes</h2>

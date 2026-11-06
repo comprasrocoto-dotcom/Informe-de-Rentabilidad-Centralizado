@@ -7,11 +7,12 @@ import { fmtDec, fmtNum, fmtPct } from "@/lib/formato";
 type Col = { clave: string; titulo: string; tipo: "pesos" | "num" | "dec" };
 
 export function TablaDimension({
-  rpc, dim, titulo, columnas, columnaPrincipal, limite = 50, cc, orden, operativas, nota, ccDesdeFiltro = true, totalRef,
+  rpc, dim, titulo, columnas, columnaPrincipal, limite = 50, cc, orden, operativas, nota, ccDesdeFiltro = true, totalRef, traslados,
 }: {
   cc?: "Cocina" | "Bar" | null;
   orden?: "asc" | "desc";
   operativas?: boolean | null;
+  traslados?: boolean; // compras_por: sumar los traslados recibidos a la compra
   nota?: string;
   /** si no se pasa `cc`, usa el filtro Cocina/Bar de la barra */
   ccDesdeFiltro?: boolean;
@@ -35,7 +36,7 @@ export function TablaDimension({
     const ccEf = cc !== undefined ? cc : ccDesdeFiltro && filtros.cc !== "todos" ? filtros.cc : null;
     const extra: Record<string, unknown> = { p_cc: ccEf };
     if (rpc === "ventas_por") extra.p_orden = orden ?? "desc";
-    if (rpc === "compras_por") extra.p_operativas = operativas === undefined ? true : operativas;
+    if (rpc === "compras_por") { extra.p_operativas = operativas === undefined ? true : operativas; extra.p_traslados = traslados ?? false; }
     sb.rpc(rpc, {
       p_dim: dim, p_marca: filtros.marcaId, p_sede: filtros.sedeId,
       p_desde: filtros.desde || null, p_hasta: filtros.hasta || null, p_limite: limite, ...extra,
@@ -46,7 +47,7 @@ export function TablaDimension({
       setCargando(false);
     });
     return () => { vivo = false; };
-  }, [sb, rpc, dim, limite, filtros.marcaId, filtros.sedeId, filtros.desde, filtros.hasta, filtros.cc, cc, orden, operativas, ccDesdeFiltro]);
+  }, [sb, rpc, dim, limite, filtros.marcaId, filtros.sedeId, filtros.desde, filtros.hasta, filtros.cc, cc, orden, operativas, ccDesdeFiltro, traslados]);
 
   const total = totalRef ?? filas.reduce((a, f) => a + Number(f[columnaPrincipal] || 0), 0);
   const mayor = Math.max(1, ...filas.map((f) => Number(f[columnaPrincipal] || 0)));

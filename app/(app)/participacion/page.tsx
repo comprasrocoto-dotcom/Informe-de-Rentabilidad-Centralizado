@@ -27,9 +27,9 @@ export default function Participacion() {
     Promise.all([
       sb.rpc("ventas_por", { ...base, p_dim: "cc_negocio", p_limite: 20 }),
       sb.rpc("ventas_por", { ...base, p_dim: "familia", p_limite: 12 }),
-      sb.rpc("compras_por", { ...base, p_dim: "familia", p_limite: 12, p_operativas: true }),
-      sb.rpc("compras_por", { ...base, p_dim: "articulo", p_limite: 1, p_operativas: true }),
-      sb.rpc("compras_por", { ...base, p_dim: "centro_costos", p_limite: 50, p_operativas: true }),
+      sb.rpc("compras_por", { ...base, p_dim: "familia", p_limite: 12, p_operativas: true, p_traslados: true }),
+      sb.rpc("compras_por", { ...base, p_dim: "articulo", p_limite: 1, p_operativas: true, p_traslados: true }),
+      sb.rpc("compras_por", { ...base, p_dim: "centro_costos", p_limite: 50, p_operativas: true, p_traslados: true }),
       sb.rpc("ventas_kpis", base),
     ]).then(([a, b, c, e, f, k]) => {
       if (!vivo) return;
@@ -40,14 +40,14 @@ export default function Participacion() {
 
   if (!d) return <div><Encabezado titulo="Participación" /><BarraFiltros sinCC /><p className="text-sm text-texto-2">Cargando…</p></div>;
   const v = d.ventas;
-  const compras = d.famC.reduce((a, x) => a + Number(x.total), 0);
+  const compras = d.comprasCC.reduce((a, x) => a + Number(x.total), 0); // compras + traslados de Cocina y Bar (todas las familias)
   const compraCC = (cc: string) => d.comprasCC.filter((x) => x.clave.toLowerCase().includes(cc.toLowerCase())).reduce((a, x) => a + Number(x.total), 0);
   const ventaCC = (cc: string) => Number(d.cc.find((x) => x.clave === cc)?.base ?? 0);
   const ratio = v ? compras / v : null;
 
   return (
     <div>
-      <Encabezado titulo="Participación" descripcion="Qué pesa más en la venta y en la compra. Ratio compra / venta = compras de Cocina y Bar ÷ ventas (referencia rápida, no reemplaza el juego de inventarios)." />
+      <Encabezado titulo="Participación" descripcion="Qué pesa más en la venta y en la compra. Ratio compra / venta = compras + traslados de Cocina y Bar ÷ ventas (referencia rápida, no reemplaza el juego de inventarios)." />
       <BarraFiltros sinCC />
       <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Tarjeta titulo="Centro de costo con más venta" valor={d.cc[0]?.clave ?? "—"} nota={d.cc[0] && v ? `${fmtPct(Number(d.cc[0].base) / v)} de la venta` : undefined} />
@@ -59,7 +59,7 @@ export default function Participacion() {
       <div className="mb-5 grid gap-3 lg:grid-cols-2 xl:grid-cols-4">
         <ListaBarras titulo="Ventas por centro de costo" filas={d.cc.map((x) => ({ k: x.clave, v: Number(x.base), detalle: v ? fmtPct(Number(x.base) / v) : "" }))} formato={fmtM} />
         <ListaBarras titulo="Ventas por familia" filas={d.fam.map((x) => ({ k: x.clave, v: Number(x.base), detalle: v ? fmtPct(Number(x.base) / v) : "" }))} formato={fmtM} />
-        <ListaBarras titulo="Compras por familia" nota="Solo Cocina y Bar" color="#eb6834" filas={d.famC.map((x) => ({ k: x.clave, v: Number(x.total), detalle: compras ? fmtPct(Number(x.total) / compras) : "" }))} formato={fmtM} />
+        <ListaBarras titulo="Compras por familia" nota="Compras + traslados, solo Cocina y Bar" color="#eb6834" filas={d.famC.map((x) => ({ k: x.clave, v: Number(x.total), detalle: compras ? fmtPct(Number(x.total) / compras) : "" }))} formato={fmtM} />
         <ListaBarras
           titulo="Ratio compra / venta por centro"
           filas={["Cocina", "Bar"].filter((cc) => ventaCC(cc) > 0).map((cc) => {
