@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useApp } from "./Contexto";
+import { descargarModulo, tablasDeRuta } from "@/lib/descargaModulo";
+import { TABLAS, type TablaBase } from "@/lib/descargaBase";
 
 const hoy = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" });
 
@@ -102,8 +106,28 @@ function descargarPdf() {
 }
 
 export function Descargar() {
+  const { sb, filtros, marcas, sedes } = useApp();
+  const ruta = usePathname();
   const [abierto, setAbierto] = useState(false);
   const [ocupado, setOcupado] = useState(false);
+  const [avance, setAvance] = useState<string | null>(null);
+  const [errorBase, setErrorBase] = useState<string | null>(null);
+  const modulo = tablasDeRuta(ruta);
+  const nombresTablas = modulo.tablas.map((t) => (t in TABLAS ? TABLAS[t as TablaBase].hoja : t.replace("cp_", "").replace(/_/g, " "))).join(", ");
+  async function bajarBase() {
+    setAbierto(false); setOcupado(true); setErrorBase(null); setAvance("Empezando…");
+    try {
+      const marcaFiltro = filtros.marcaId ? marcas.find((m) => m.id === filtros.marcaId)?.nombre ?? "" : "todas las marcas";
+      await descargarModulo(sb, ruta, { marcaId: filtros.marcaId, sedeId: filtros.sedeId, desde: filtros.desde, hasta: filtros.hasta }, {
+        marca: (id) => marcas.find((m) => m.id === id)?.nombre ?? String(id),
+        sede: (id) => sedes.find((x) => x.id === id)?.nombre ?? String(id),
+        marcaFiltro,
+      }, setAvance);
+    } catch (e) {
+      setErrorBase(`No se pudo descargar: ${e instanceof Error ? e.message : String(e)}`);
+      setTimeout(() => setErrorBase(null), 8000);
+    } finally { setOcupado(false); setAvance(null); }
+  }
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!abierto) return;
@@ -115,13 +139,20 @@ export function Descargar() {
     <div ref={ref} className="relative flex items-stretch">
       <button onClick={() => setAbierto((v) => !v)} disabled={ocupado} className="flex items-center gap-1.5 px-4 text-[13px] text-white hover:bg-white/10" aria-expanded={abierto}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 4v12m0 0l-4-4m4 4l4-4M4 18v2h16v-2" /></svg>
-        {ocupado ? "Preparando…" : "Descargar"}
+        {ocupado ? (avance ? `Descargando ${avance}` : "Preparando…") : "Descargar"}
       </button>
+      {errorBase && <div className="absolute top-full right-0 z-50 w-72 rounded-sm border border-alerta bg-white p-3 text-xs text-alerta shadow-xl">{errorBase}</div>}
       {abierto && (
-        <div className="absolute top-full right-0 z-50 w-72 rounded-sm border border-linea bg-white py-1 text-sm text-texto shadow-xl">
+        <div className="absolute top-full right-0 z-50 w-80 rounded-sm border border-linea bg-white py-1 text-sm text-texto shadow-xl">
           <button className="flex w-full items-start gap-3 px-3 py-2 text-left hover:bg-marca-suave" onClick={async () => { setAbierto(false); setOcupado(true); try { await descargarExcel(); } finally { setOcupado(false); } }}>
             <span className="mt-0.5 rounded-sm bg-[#1d6f42] px-1.5 py-0.5 text-[10px] font-bold text-white">XLS</span>
-            <span><b className="block font-medium">Excel</b><span className="text-xs text-texto-2">Cada tabla de esta página en una hoja, con los filtros aplicados</span></span>
+            <span><b className="block font-medium">Excel de las tablas de la página</b><span className="text-xs text-texto-2">Lo que ves en pantalla: cada tabla de esta página en una hoja, con los filtros aplicados</span></span>
+          </button>
+          <button className="flex w-full items-start gap-3 border-b border-linea px-3 py-2 text-left hover:bg-marca-suave" onClick={bajarBase}>
+            <span className="mt-0.5 rounded-sm bg-tinta px-1.5 py-0.5 text-[10px] font-bold text-white">BD</span>
+            <span><b className="block font-medium">Base de datos de este módulo</b><span className="text-xs text-texto-2">
+              Las filas originales de {modulo.nombre} ({nombresTablas}){ruta.startsWith("/cp") ? ", todo lo cargado" : ", con la marca, sede y fechas del filtro"}. Una hoja por tabla.
+            </span></span>
           </button>
           <button className="flex w-full items-start gap-3 px-3 py-2 text-left hover:bg-marca-suave" onClick={() => { setAbierto(false); setTimeout(descargarPdf, 50); }}>
             <span className="mt-0.5 rounded-sm bg-alerta px-1.5 py-0.5 text-[10px] font-bold text-white">PDF</span>

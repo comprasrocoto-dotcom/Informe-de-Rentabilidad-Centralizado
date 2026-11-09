@@ -375,3 +375,15 @@ archivos con cualquiera de los dos nombres caen en la misma sede.
 Observación de datos: el conteo de Bar del 30/09 en esa sede está inflado (Ron Zacapa 18 → 159 → 14,
 Buchanan's 18 años 24 → 133,5 → 40, Hendrick's 42 → 148,5 → 102), lo que deja la mercancía vendida de Bar
 negativa en septiembre y muy alta en octubre. El total Cocina + Bar de los dos meses juntos no se afecta.
+
+## 9 de noviembre de 2026 — Descargar la base de datos de cada módulo
+
+El botón **Descargar** de la barra superior tiene una opción nueva, **"Base de datos de este módulo"**
+(`lib/descargaModulo.ts`): baja en Excel las filas originales que alimentan la página, una hoja por tabla, con
+nombres de marca y sede, respetando marca, sede y fechas del filtro (y el acceso por marca).
+- Resumen, Costo, Mercancía vendida, Compras vs ventas: ventas, compras, traslados e inventarios.
+- Ventas: ventas y facturas · Descuentos: ventas · Compras (General y Cocina y Bar): compras y traslados ·
+  Traslados · Inventarios · Rentabilidad de carta: carta y ventas · Participación: ventas, compras y traslados.
+- Centro de producción (cualquier pestaña): todas sus tablas completas (compras, fabricación, traslados,
+  inventario, base de conversión, costos compartidos y reparto manual), con encabezados como en el archivo de cierre.
+La opción anterior se renombró "Excel de las tablas de la página" (lo que se ve en pantalla).
