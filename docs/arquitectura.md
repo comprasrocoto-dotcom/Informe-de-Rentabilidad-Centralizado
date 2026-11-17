@@ -387,3 +387,20 @@ nombres de marca y sede, respetando marca, sede y fechas del filtro (y el acceso
 - Centro de producción (cualquier pestaña): todas sus tablas completas (compras, fabricación, traslados,
   inventario, base de conversión, costos compartidos y reparto manual), con encabezados como en el archivo de cierre.
 La opción anterior se renombró "Excel de las tablas de la página" (lo que se ve en pantalla).
+
+## 17 de noviembre de 2026 — EVENTOS se reparte entre Cocina y Bar
+
+Problema: en ROCOTO el archivo de ventas trae la familia EVENTOS con centro de costo Bar ($210,2 M en octubre), así
+que Bar vendía más que Cocina y salía con ~15 % de costo y Cocina con ~50 %. En ARREBATAO viene como Cocina.
+
+Decisión de la usuaria: repartirla, en todas las marcas. En `resumen_costos`, las ventas de la familia EVENTOS
+(con centro de costo Cocina o Bar) se reparten en cada sede y mes en la proporción de las demás ventas de Cocina y
+Bar de ese mes (si no hay otras, van a Cocina). El total de ventas y el costo global no cambian.
+
+Resultado octubre 2026: ROCOTO Cocina 37,9 % / Bar 22,8 % (Amsterdam 40,8 / 26,9; Laureles 36,7 / 27,1;
+Provenza 36,0 / 10,3). ARREBATAO Cocina 36,5 % / Bar 29,2 %.
+
+Ojo con Provenza: el inventario final de Bar del 31/10 sube de $20,1 M a $29,1 M, lo que baja su costo de Bar.
+
+Nota sobre el inventario de ROCOTO: la captura en que no salía inventario final era de antes de que terminara de
+guardarse "INVENTARIO ROCOTO.xlsx" (16.052 filas, conteos de fin de mes de enero a octubre en las 3 sedes y la planta).

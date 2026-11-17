@@ -40,7 +40,7 @@ export function DetalleExcluidas({ c }: { c: Cifras }) {
   return (
     <div className="tarjeta">
       <h3 className="text-sm font-semibold text-tinta">Ventas que entran al cálculo del costo</h3>
-      <p className="mb-3 text-xs text-texto-3">Ventas base = ventas totales − ventas excluidas. Los descuentos y notas crédito siguen restando.</p>
+      <p className="mb-3 text-xs text-texto-3">Ventas base = ventas totales − ventas excluidas. Los descuentos y notas crédito siguen restando. La familia EVENTOS se reparte entre Cocina y Bar en la proporción de las demás ventas de la sede en el mes.</p>
       <dl className="space-y-1.5 text-[13px]">
         <div className="flex justify-between gap-4"><dt className="text-texto-2">Ventas totales</dt><dd className="tabular-nums">{fmtPesos(c.ventasTot)}</dd></div>
         <div className="flex justify-between gap-4"><dt className="text-texto-2">Ventas base (Cocina + Bar)</dt><dd className="font-medium tabular-nums text-tinta">{fmtPesos(c.ventasBase)}</dd></div>
