@@ -404,3 +404,17 @@ Ojo con Provenza: el inventario final de Bar del 31/10 sube de $20,1 M a $29,1 M
 
 Nota sobre el inventario de ROCOTO: la captura en que no salía inventario final era de antes de que terminara de
 guardarse "INVENTARIO ROCOTO.xlsx" (16.052 filas, conteos de fin de mes de enero a octubre en las 3 sedes y la planta).
+
+## 18 de noviembre de 2026 — CP: marca de cada carga y qué falta por subir
+
+En Centro de producción → Cargar archivo:
+- Función `cp_cobertura()`: filas por carga y marca, y por tipo / marca / mes (días, filas, último día), más meses
+  de costos compartidos y tamaño de la base de conversión.
+- **Historial:** nueva columna **Marca** con las filas de cada carga en San Agustín y en Rocoto (Base de conversión
+  y Costos compartidos son de ambas). Filtros de Marca y Tipo.
+- **¿Qué falta por subir?** (`components/cp/CoberturaCP.tsx`): Compras, Fabricación, Traslados e Inventario final
+  por marca y mes (✓ si hay datos hasta el día 25 o después, amarillo si el último dato es anterior, rojo si falta),
+  Costos compartidos por mes y Base de conversión cargada o no.
+Estado al 18/11/2026: faltan compras de octubre (ambas) y de septiembre (Rocoto), fabricación de octubre (ambas),
+inventario de octubre (ambas) y de septiembre (Rocoto), y costos compartidos de agosto a octubre. El inventario de
+San Agustín del 30/09 tiene solo 38 renglones (julio 475, agosto 248).

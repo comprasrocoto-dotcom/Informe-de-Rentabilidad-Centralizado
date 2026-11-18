@@ -9,6 +9,7 @@ import { Aviso, Seccion } from "@/components/cp/Comunes";
 import { fmtFecha, fmtNum } from "@/lib/formato";
 import { leerArchivoCP, type HojaCP, type MarcaCP, type TipoCP } from "@/lib/cp/importadorCP";
 import { guardarHojaCP, type ModoCP } from "@/lib/cp/subidaCP";
+import { CoberturaCP, MarcasDeCarga, type CobCP, type TipoFiltroCP } from "@/components/cp/CoberturaCP";
 
 const NOMBRE: Record<HojaCP["tipo"], string> = {
   compras: "Compras", fabricaciones: "Fabricación", traslados: "Traslados", inventarios: "Inventario final",
@@ -43,14 +44,24 @@ export default function CargarCP() {
   const [estado, setEstado] = useState<{ texto: string; f: number } | null>(null);
   const [mensaje, setMensaje] = useState<{ ok: boolean; texto: string } | null>(null);
   const [historial, setHistorial] = useState<Carga[]>([]);
+  const [cob, setCob] = useState<CobCP | null>(null);
+  const [fMarca, setFMarca] = useState<MarcaCP | "">("");
+  const [fTipo, setFTipo] = useState<TipoFiltroCP | "">("");
   const [eleccion, setEleccion] = useState<Eleccion>("libro");
   const [marcaForzada, setMarcaForzada] = useState<MarcaCP | "">("");
   const [modo, setModo] = useState<ModoCP>("agregar");
 
   const cargarHistorial = async () => {
-    const { data } = await sb.from("cp_cargas").select("*").order("id", { ascending: false }).limit(100);
+    const [{ data }, c] = await Promise.all([
+      sb.from("cp_cargas").select("*").order("id", { ascending: false }).limit(100),
+      sb.rpc("cp_cobertura"),
+    ]);
     setHistorial((data as Carga[]) ?? []);
+    setCob((c.data as CobCP) ?? null);
   };
+  const historialFiltrado = historial
+    .filter((c) => !fTipo || c.tipo === fTipo)
+    .filter((c) => !fMarca || c.tipo === "base_conversion" || c.tipo === "costos" || (cob?.cargas ?? []).some((x) => x.c === c.id && x.m === fMarca));
   useEffect(() => { cargarHistorial(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const leer = async (f: File | undefined) => {
@@ -176,20 +187,43 @@ export default function CargarCP() {
         </Seccion>
       )}
 
-      <Seccion titulo="Historial de cargas" nota="Si subiste algo por error, bórralo aquí">
+      <div className="tarjeta mb-4 flex flex-wrap items-end gap-3 !py-3">
+        <div className="mr-2">
+          <h2 className="text-sm font-medium">Revisar lo cargado</h2>
+          <p className="text-xs text-texto-2">Filtra el cuadro de lo que falta y el historial por marca y tipo.</p>
+        </div>
+        <label><span className="etiqueta">Marca</span>
+          <select className="campo w-44" value={fMarca} onChange={(e) => setFMarca(e.target.value as MarcaCP | "")}>
+            <option value="">Ambas marcas</option><option value="San Agustín">San Agustín</option><option value="Rocoto">Rocoto</option>
+          </select>
+        </label>
+        <label><span className="etiqueta">Tipo</span>
+          <select className="campo w-52" value={fTipo} onChange={(e) => setFTipo(e.target.value as TipoFiltroCP | "")}>
+            <option value="">Todos los tipos</option>
+            {(["compras", "fabricaciones", "traslados", "inventarios", "costos", "base_conversion"] as TipoFiltroCP[]).map((t) => <option key={t} value={t}>{NOMBRE[t]}</option>)}
+          </select>
+        </label>
+      </div>
+
+      <Seccion titulo="¿Qué falta por subir?" nota="Mes a mes, por tipo y marca. Pasa el mouse sobre una casilla para ver el detalle. El mes en curso sale en gris.">
+        <CoberturaCP cob={cob} marca={fMarca || null} tipo={fTipo || null} />
+      </Seccion>
+
+      <Seccion titulo="Historial de cargas" nota="La columna Marca dice cuántas filas de cada carga quedaron en San Agustín y en Rocoto. Si subiste algo por error, bórralo aquí.">
         <table className="tabla">
-          <thead><tr><th>Fecha</th><th>Archivo</th><th>Hoja</th><th>Tipo</th><th>Periodo</th><th className="num">Filas</th><th></th></tr></thead>
+          <thead><tr><th>Fecha</th><th>Archivo</th><th>Hoja</th><th>Tipo</th><th>Marca</th><th>Periodo</th><th className="num">Filas</th><th></th></tr></thead>
           <tbody>
-            {historial.map((c) => (
+            {historialFiltrado.map((c) => (
               <tr key={c.id}>
                 <td>{new Date(c.created_at).toLocaleString("es-CO", { dateStyle: "short", timeStyle: "short" })}</td>
                 <td className="max-w-[14rem] truncate" title={c.archivo}>{c.archivo}</td><td>{c.hoja}</td><td>{NOMBRE[c.tipo] ?? c.tipo}</td>
+                <td>{c.tipo === "base_conversion" || c.tipo === "costos" ? <span className="text-texto-3">Ambas</span> : <MarcasDeCarga cob={cob} id={c.id} />}</td>
                 <td>{c.desde ? `${fmtFecha(c.desde)} – ${fmtFecha(c.hasta)}` : "—"}</td>
                 <td className="num">{fmtNum(c.filas_guardadas ?? 0)}</td>
                 <td><button className="text-xs text-alerta hover:underline" onClick={() => borrar(c)}>Borrar</button></td>
               </tr>
             ))}
-            {!historial.length && <tr><td colSpan={7} className="text-texto-3">Aún no hay cargas del CP.</td></tr>}
+            {!historialFiltrado.length && <tr><td colSpan={8} className="text-texto-3">{historial.length ? "No hay cargas para este filtro." : "Aún no hay cargas del CP."}</td></tr>}
           </tbody>
         </table>
       </Seccion>
